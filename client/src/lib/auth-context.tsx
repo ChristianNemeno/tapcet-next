@@ -1,0 +1,64 @@
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
+
+interface AuthState {
+  token: string | null;
+  name: string | null;
+  role: "user" | "admin" | null;
+}
+
+interface AuthContextValue extends AuthState {
+  login: (token: string, name: string, role: "user" | "admin") => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [auth, setAuth] = useState<AuthState>({
+    token: null,
+    name: null,
+    role: null,
+  });
+
+  useEffect(() => {
+    const stored = localStorage.getItem("tapcet_auth");
+    if (stored) {
+      try {
+        setAuth(JSON.parse(stored) as AuthState);
+      } catch {
+        localStorage.removeItem("tapcet_auth");
+      }
+    }
+  }, []);
+
+  function login(token: string, name: string, role: "user" | "admin") {
+    const next = { token, name, role };
+    setAuth(next);
+    localStorage.setItem("tapcet_auth", JSON.stringify(next));
+  }
+
+  function logout() {
+    setAuth({ token: null, name: null, role: null });
+    localStorage.removeItem("tapcet_auth");
+  }
+
+  return (
+    <AuthContext.Provider value={{ ...auth, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
