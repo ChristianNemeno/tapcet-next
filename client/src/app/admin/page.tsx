@@ -149,8 +149,10 @@ export default function AdminPage() {
                 <Badge variant="secondary" className="ml-2">{q.questionCount}q</Badge>
               </div>
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">Delete</Button>
+                <AlertDialogTrigger
+                  render={<Button variant="destructive" size="sm" />}
+                >
+                  Delete
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

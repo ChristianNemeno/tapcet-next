@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 
@@ -22,22 +21,23 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [auth, setAuth] = useState<AuthState>({
-    token: null,
-    name: null,
-    role: null,
-  });
-
-  useEffect(() => {
-    const stored = localStorage.getItem("tapcet_auth");
-    if (stored) {
-      try {
-        setAuth(JSON.parse(stored) as AuthState);
-      } catch {
-        localStorage.removeItem("tapcet_auth");
-      }
+  const [auth, setAuth] = useState<AuthState>(() => {
+    if (typeof window === "undefined") {
+      return { token: null, name: null, role: null };
     }
-  }, []);
+
+    const stored = localStorage.getItem("tapcet_auth");
+    if (!stored) {
+      return { token: null, name: null, role: null };
+    }
+
+    try {
+      return JSON.parse(stored) as AuthState;
+    } catch {
+      localStorage.removeItem("tapcet_auth");
+      return { token: null, name: null, role: null };
+    }
+  });
 
   function login(token: string, name: string, role: "user" | "admin") {
     const next = { token, name, role };

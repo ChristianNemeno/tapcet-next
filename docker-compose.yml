@@ -50,14 +50,5 @@ services:
       - server
     restart: unless-stopped
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
-    depends_on:
-      - nginx
-    restart: unless-stopped
-
 volumes:
   postgres_data:

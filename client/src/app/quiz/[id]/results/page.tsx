@@ -14,18 +14,33 @@ import { Progress } from "@/components/ui/progress";
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [result, setResult] = useState<SubmitQuizResponse | null>(null);
+  const [result] = useState<SubmitQuizResponse | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const raw = sessionStorage.getItem(`tapcet_result_${id}`);
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw) as SubmitQuizResponse;
+    } catch {
+      sessionStorage.removeItem(`tapcet_result_${id}`);
+      return null;
+    }
+  });
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem(`tapcet_result_${id}`);
-    if (!raw) {
+    if (!result) {
       router.replace(`/quiz/${id}`);
       return;
     }
-    setResult(JSON.parse(raw) as SubmitQuizResponse);
+
     fetchQuiz(id).then(setQuiz).catch(() => null);
-  }, [id, router]);
+  }, [id, result, router]);
 
   if (!result) return null;
 
