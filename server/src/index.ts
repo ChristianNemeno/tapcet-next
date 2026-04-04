@@ -19,6 +19,30 @@ if (process.env.NODE_ENV !== "production") {
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const shouldLog =
+    req.path.startsWith("/api/auth") ||
+    req.path.startsWith("/api/admin") ||
+    (req.method === "POST" && /^\/api\/quiz\/[^/]+\/submit$/.test(req.path));
+
+  if (!shouldLog) {
+    next();
+    return;
+  }
+
+  const startedAt = Date.now();
+
+  res.on("finish", () => {
+    const durationMs = Date.now() - startedAt;
+    const userId = req.user?.userId ?? "anonymous";
+    console.info(
+      `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs}ms user=${userId}`
+    );
+  });
+
+  next();
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api", quizRouter);

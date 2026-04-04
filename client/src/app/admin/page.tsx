@@ -5,12 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import type { QuizSummary } from "@/lib/types";
 import { fetchQuizzes } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,130 +124,185 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 space-y-10">
+    <div className="mx-auto max-w-3xl px-6 py-20 space-y-16">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold mb-1">Admin</h1>
-        <p className="text-muted-foreground">Manage quizzes.</p>
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-2">
+          Administration
+        </p>
+        <h1 className="font-mono font-bold text-2xl tracking-tight">
+          Manage quizzes<span className="text-primary">.</span>
+        </h1>
       </div>
 
       {/* Existing quizzes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Existing quizzes</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {quizzes.length === 0 && (
-            <p className="text-muted-foreground text-sm">No quizzes yet.</p>
-          )}
-          {quizzes.map((q) => (
-            <div key={q.id} className="flex items-center justify-between border rounded-md px-3 py-2">
-              <div>
-                <span className="font-medium text-sm">{q.title}</span>
-                <Badge variant="secondary" className="ml-2">{q.questionCount}q</Badge>
+      <section>
+        <h2 className="font-mono font-semibold text-sm tracking-tight text-muted-foreground uppercase mb-6">
+          Existing Quizzes
+        </h2>
+        {quizzes.length === 0 ? (
+          <p className="font-mono text-sm text-muted-foreground">No quizzes yet.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {quizzes.map((q) => (
+              <div key={q.id} className="flex items-center justify-between py-4 first:pt-0">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-medium">{q.title}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {q.questionCount}q
+                  </span>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="font-mono text-xs text-destructive hover:text-destructive tracking-tight"
+                      />
+                    }
+                  >
+                    delete
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="font-mono tracking-tight">
+                        Delete &ldquo;{q.title}&rdquo;?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the quiz and all leaderboard entries.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(q.id)}
+                        className="font-mono text-xs bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger
-                  render={<Button variant="destructive" size="sm" />}
-                >
-                  Delete
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete &ldquo;{q.title}&rdquo;?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete the quiz and all leaderboard entries.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(q.id)}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
-      <Separator />
+      {/* Divider */}
+      <div className="border-t border-border" />
 
       {/* Create quiz form */}
-      <form onSubmit={handleCreate} className="space-y-6">
-        <h2 className="text-lg font-semibold">Create quiz</h2>
+      <form onSubmit={handleCreate} className="space-y-8">
+        <h2 className="font-mono font-semibold text-sm tracking-tight text-muted-foreground uppercase">
+          Create Quiz
+        </h2>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {success && <p className="text-sm text-green-600">{success}</p>}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+        {error && (
+          <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2">
+            {error}
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="timeLimit">Time limit (seconds, optional)</Label>
+        )}
+        {success && (
+          <div className="font-mono text-xs text-primary border border-primary/20 bg-primary/5 rounded px-3 py-2">
+            {success}
+          </div>
+        )}
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="title" className="font-mono text-xs tracking-tight">Title</Label>
+            <Input
+              id="title"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="font-mono text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="timeLimit" className="font-mono text-xs tracking-tight">
+              Time limit (seconds)
+            </Label>
             <Input
               id="timeLimit"
               type="number"
               min={10}
               value={timeLimit}
               onChange={(e) => setTimeLimit(e.target.value)}
+              placeholder="optional"
+              className="font-mono text-sm"
             />
           </div>
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="description">Description</Label>
-          <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <div className="space-y-1.5">
+          <Label htmlFor="description" className="font-mono text-xs tracking-tight">Description</Label>
+          <Input
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="font-mono text-sm"
+          />
         </div>
 
-        <div className="space-y-4">
-          <p className="font-medium text-sm">Questions</p>
+        {/* Questions */}
+        <div className="space-y-6">
+          <p className="font-mono font-semibold text-sm tracking-tight text-muted-foreground uppercase">
+            Questions
+          </p>
           {questions.map((q, qi) => (
-            <Card key={qi}>
-              <CardContent className="pt-4 space-y-3">
-                <div className="space-y-1">
-                  <Label>Question {qi + 1}</Label>
-                  <Input
-                    required
-                    value={q.text}
-                    onChange={(e) => updateQuestion(qi, { text: e.target.value })}
-                    placeholder="Question text"
-                  />
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {q.options.map((opt, oi) => (
-                    <div key={oi} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name={`answer-${qi}`}
-                        checked={q.answer === oi}
-                        onChange={() => updateQuestion(qi, { answer: oi })}
-                        className="accent-primary"
-                      />
-                      <Input
-                        required
-                        value={opt}
-                        onChange={(e) => updateOption(qi, oi, e.target.value)}
-                        placeholder={`Option ${oi + 1}`}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">Select the radio button next to the correct answer.</p>
-              </CardContent>
-            </Card>
+            <div key={qi} className="border border-border rounded-sm p-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="font-mono text-xs tracking-tight">
+                  Question {String(qi + 1).padStart(2, "0")}
+                </Label>
+                <Input
+                  required
+                  value={q.text}
+                  onChange={(e) => updateQuestion(qi, { text: e.target.value })}
+                  placeholder="Question text"
+                  className="font-mono text-sm"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {q.options.map((opt, oi) => (
+                  <div key={oi} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`answer-${qi}`}
+                      checked={q.answer === oi}
+                      onChange={() => updateQuestion(qi, { answer: oi })}
+                      className="accent-primary"
+                    />
+                    <Input
+                      required
+                      value={opt}
+                      onChange={(e) => updateOption(qi, oi, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="font-mono text-xs text-muted-foreground">
+                Select the correct answer above.
+              </p>
+            </div>
           ))}
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => setQuestions((prev) => [...prev, emptyQuestion()])}
+            className="font-mono text-xs tracking-tight"
           >
-            + Add question
+            + add question
           </Button>
         </div>
 
-        <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Create quiz"}
+        <Button type="submit" disabled={saving} className="font-mono text-xs tracking-tight">
+          {saving ? "saving..." : "create quiz"}
         </Button>
       </form>
     </div>

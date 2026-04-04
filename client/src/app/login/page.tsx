@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -34,49 +33,59 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Log in</CardTitle>
-          <CardDescription>Welcome back to Tapcet.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in…" : "Log in"}
-            </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              No account?{" "}
-              <Link href="/register" className="underline underline-offset-2">
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+    <div className="mx-auto max-w-sm px-6 py-20">
+      <div className="mb-10">
+        <h1 className="font-mono font-bold text-2xl tracking-tight mb-2">
+          Log in<span className="text-primary">.</span>
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Welcome back to Tapcet.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2">
+            {error}
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="font-mono text-xs tracking-tight">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="font-mono text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="font-mono text-xs tracking-tight">
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="font-mono text-sm"
+          />
+        </div>
+        <Button type="submit" className="w-full font-mono text-xs tracking-tight" disabled={loading}>
+          {loading ? "logging in..." : "log in"}
+        </Button>
+      </form>
+
+      <p className="text-sm text-muted-foreground text-center mt-8">
+        No account?{" "}
+        <Link href="/register" className="text-primary hover:underline underline-offset-4">
+          Sign up
+        </Link>
+      </p>
     </div>
   );
 }

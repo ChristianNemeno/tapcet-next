@@ -5,11 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { fetchQuiz } from "@/lib/api";
 import type { SubmitQuizResponse, QuizDetail } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -47,55 +43,86 @@ export default function ResultsPage() {
   const pct = Math.round(result.percentage);
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-end gap-3">
-            <span className="text-5xl font-bold">{result.score}</span>
-            <span className="text-muted-foreground text-lg mb-1">/ {result.total}</span>
-          </div>
-          <Progress value={pct} />
-          <p className="text-muted-foreground text-sm">{pct}% correct · submitted as <strong>{result.nickname}</strong></p>
-        </CardContent>
-      </Card>
+    <div className="mx-auto max-w-2xl px-6 py-20">
+      {/* Score header */}
+      <div className="mb-12">
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-4">
+          Results
+        </p>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="font-mono font-bold text-5xl tracking-tighter tabular-nums">
+            {result.score}
+          </span>
+          <span className="font-mono text-lg text-muted-foreground">
+            / {result.total}
+          </span>
+        </div>
+        {/* Minimal progress line */}
+        <div className="h-px bg-border mb-4 relative">
+          <div
+            className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="font-mono text-xs text-muted-foreground">
+          {pct}% correct &middot; submitted as <span className="text-foreground font-medium">{result.nickname}</span>
+        </p>
+      </div>
 
+      {/* Question breakdown */}
       {quiz && (
-        <div className="space-y-3 mb-8">
-          {result.results.map((r, i) => {
-            const q = quiz.questions.find((q) => q.id === r.questionId);
-            return (
-              <Card key={r.questionId} className={r.correct ? "border-green-600/30" : "border-destructive/30"}>
-                <CardContent className="pt-4 space-y-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium">{i + 1}. {q?.text}</p>
-                    <Badge variant={r.correct ? "default" : "destructive"} className="shrink-0">
-                      {r.correct ? "Correct" : "Wrong"}
-                    </Badge>
+        <div className="mb-12">
+          <h2 className="font-mono font-semibold text-sm tracking-tight text-muted-foreground uppercase mb-6">
+            Breakdown
+          </h2>
+          <div className="space-y-0 divide-y divide-border">
+            {result.results.map((r, i) => {
+              const q = quiz.questions.find((q) => q.id === r.questionId);
+              return (
+                <div key={r.questionId} className="py-4 first:pt-0">
+                  <div className="flex items-start gap-4">
+                    <span className="font-mono text-xs text-muted-foreground pt-0.5 w-6 shrink-0 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4">
+                        <p className="text-sm font-medium">{q?.text}</p>
+                        <span className={`font-mono text-xs shrink-0 ${
+                          r.correct ? "text-primary" : "text-destructive"
+                        }`}>
+                          {r.correct ? "correct" : "wrong"}
+                        </span>
+                      </div>
+                      {!r.correct && q && (
+                        <div className="font-mono text-xs text-muted-foreground mt-2 space-y-0.5">
+                          <p>
+                            yours: <span className="text-destructive">{q.options[r.selectedAnswer] ?? "\u2014"}</span>
+                          </p>
+                          <p>
+                            answer: <span className="text-primary">{q.options[r.correctAnswer]}</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {!r.correct && q && (
-                    <p className="text-xs text-muted-foreground">
-                      Your answer: <span className="text-destructive">{q.options[r.selectedAnswer] ?? "—"}</span>
-                      {" · "}Correct: <span className="text-green-600">{q.options[r.correctAnswer]}</span>
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      <Separator className="mb-6" />
-
-      <div className="flex gap-3">
+      {/* Actions */}
+      <div className="border-t border-border pt-6 flex gap-3">
         <Link href={`/quiz/${id}/leaderboard`}>
-          <Button variant="outline">Leaderboard</Button>
+          <Button variant="outline" className="font-mono text-xs tracking-tight">
+            leaderboard
+          </Button>
         </Link>
         <Link href="/">
-          <Button>Play again</Button>
+          <Button className="font-mono text-xs tracking-tight">
+            play again
+          </Button>
         </Link>
       </div>
     </div>
