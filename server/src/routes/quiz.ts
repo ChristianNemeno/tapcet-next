@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
-import { quizzes, questions, leaderboard } from "../db/schema.js";
+import { quizzes, questions, leaderboard, users } from "../db/schema.js";
 import { eq, count, desc, asc } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
 
-// GET /api/quizzes — list all quizzes with question count
+// GET /api/quizzes — list public quizzes with question count and creator name
 router.get("/quizzes", async (_req, res, next) => {
   try {
     const rows = await db
@@ -16,10 +16,13 @@ router.get("/quizzes", async (_req, res, next) => {
         description: quizzes.description,
         timeLimitSeconds: quizzes.timeLimitSeconds,
         questionCount: count(questions.id),
+        creatorName: users.name,
       })
       .from(quizzes)
       .leftJoin(questions, eq(questions.quizId, quizzes.id))
-      .groupBy(quizzes.id)
+      .leftJoin(users, eq(users.id, quizzes.createdBy))
+      .where(eq(quizzes.visibility, "public"))
+      .groupBy(quizzes.id, users.name)
       .orderBy(asc(quizzes.title));
 
     res.json(rows);
@@ -32,8 +35,17 @@ router.get("/quizzes", async (_req, res, next) => {
 router.get("/quiz/:id", async (req, res, next) => {
   try {
     const [quiz] = await db
-      .select()
+      .select({
+        id: quizzes.id,
+        title: quizzes.title,
+        description: quizzes.description,
+        timeLimitSeconds: quizzes.timeLimitSeconds,
+        createdBy: quizzes.createdBy,
+        visibility: quizzes.visibility,
+        creatorName: users.name,
+      })
       .from(quizzes)
+      .leftJoin(users, eq(users.id, quizzes.createdBy))
       .where(eq(quizzes.id, req.params.id))
       .limit(1);
 

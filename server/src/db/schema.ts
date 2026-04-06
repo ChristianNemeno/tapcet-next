@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const visibilityEnum = pgEnum("visibility", ["public", "draft"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -25,6 +26,8 @@ export const quizzes = pgTable("quizzes", {
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
   timeLimitSeconds: integer("time_limit_seconds"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  visibility: visibilityEnum("visibility").notNull().default("public"),
 });
 
 export const questions = pgTable("questions", {

@@ -27,6 +27,11 @@ export function Navbar() {
                   )}
                 </Button>
               </Link>
+              <Link href="/quiz/create">
+                <Button variant="ghost" size="sm" className="font-mono text-xs tracking-tight">
+                  create
+                </Button>
+              </Link>
               {role === "admin" && (
                 <Link href="/admin">
                   <Button variant="ghost" size="sm" className="font-mono text-xs tracking-tight">

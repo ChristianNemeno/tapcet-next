@@ -6,6 +6,8 @@ import type {
   LeaderboardEntry,
   DashboardEntry,
   AuthResponse,
+  MyQuizSummary,
+  QuizFormPayload,
 } from "./types";
 
 const BASE = "/api";
@@ -76,5 +78,49 @@ export async function register(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, name }),
     })
+  );
+}
+
+export async function createQuiz(
+  payload: QuizFormPayload,
+  token: string
+): Promise<MyQuizSummary> {
+  return parseResponse(
+    await fetch(`${BASE}/quiz`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader(token) },
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function updateQuiz(
+  id: string,
+  payload: Partial<QuizFormPayload>,
+  token: string
+): Promise<MyQuizSummary> {
+  return parseResponse(
+    await fetch(`${BASE}/quiz/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeader(token) },
+      body: JSON.stringify(payload),
+    })
+  );
+}
+
+export async function deleteQuiz(id: string, token: string): Promise<void> {
+  const res = await fetch(`${BASE}/quiz/${id}`, {
+    method: "DELETE",
+    headers: authHeader(token),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+}
+
+export async function fetchMyQuizzes(token: string): Promise<MyQuizSummary[]> {
+  return parseResponse(
+    await fetch(`${BASE}/my-quizzes`, { headers: authHeader(token) })
   );
 }

@@ -8,6 +8,7 @@ import { pool } from "./db/index.js";
 import quizRouter from "./routes/quiz.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
+import userQuizRouter from "./routes/userQuiz.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -47,6 +48,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api", quizRouter);
+app.use("/api", userQuizRouter);
 
 app.use(
   (

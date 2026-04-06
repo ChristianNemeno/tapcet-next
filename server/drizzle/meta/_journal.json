@@ -8,6 +8,13 @@
       "when": 1775195689711,
       "tag": "0000_many_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775484795389,
+      "tag": "0001_pale_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

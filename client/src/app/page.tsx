@@ -92,6 +92,10 @@ export default function HomePage() {
                             </span>
                           </>
                         )}
+                        <span className="text-border">|</span>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {quiz.creatorName ? `by ${quiz.creatorName}` : "Official"}
+                        </span>
                       </div>
                     </div>
                     <span className="font-mono text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pt-1">

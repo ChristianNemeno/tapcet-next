@@ -4,6 +4,7 @@ export interface QuizSummary {
   description: string;
   timeLimitSeconds: number | null;
   questionCount: number;
+  creatorName: string | null;
 }
 
 export interface QuizQuestion {
@@ -15,6 +16,25 @@ export interface QuizQuestion {
 
 export interface QuizDetail extends Omit<QuizSummary, "questionCount"> {
   questions: QuizQuestion[];
+  visibility: "public" | "draft";
+  createdBy: string | null;
+}
+
+export interface MyQuizSummary {
+  id: string;
+  title: string;
+  description: string;
+  timeLimitSeconds: number | null;
+  questionCount: number;
+  visibility: "public" | "draft";
+}
+
+export interface QuizFormPayload {
+  title: string;
+  description: string;
+  timeLimitSeconds?: number | null;
+  visibility: "public" | "draft";
+  questions: Array<{ text: string; options: string[]; answer: number }>;
 }
 
 export type AnswersMap = Record<string, number>;
