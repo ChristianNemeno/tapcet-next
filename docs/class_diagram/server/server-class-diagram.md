@@ -1,6 +1,7 @@
 # Server Class Diagram
 
 ```mermaid
+%%{ init: { 'flowchart': { 'curve': 'linear' } } }%%
 classDiagram
     direction TB
 

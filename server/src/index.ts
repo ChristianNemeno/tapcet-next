@@ -1,3 +1,4 @@
+import "./env.js";
 import express from "express";
 import cors from "cors";
 import { db } from "./db/index.js";
@@ -59,16 +60,23 @@ app.use(
   }
 );
 
-async function start() {
-  try {
-    await migrate(db, { migrationsFolder: "./drizzle" });
-    await seed();
-    app.listen(PORT, () => {
-      console.log(`Server running on :${PORT}`);
-    });
-  } catch (err) {
-    console.error("Startup failed:", err);
-    process.exit(1);
+async function start(retries = 10, delayMs = 3000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await migrate(db, { migrationsFolder: "./drizzle" });
+      await seed();
+      app.listen(PORT, () => {
+        console.log(`Server running on :${PORT}`);
+      });
+      return;
+    } catch (err) {
+      if (attempt === retries) {
+        console.error("Startup failed after all retries:", err);
+        process.exit(1);
+      }
+      console.warn(`Startup attempt ${attempt}/${retries} failed, retrying in ${delayMs}ms...`, (err as Error).message);
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
   }
 }
 
