@@ -111,7 +111,7 @@ Authenticate an existing user.
 
 ### GET `/api/quizzes`
 
-List all quizzes with question counts.
+List all public quizzes with question counts and creator names.
 
 **Auth:** None
 
@@ -124,12 +124,13 @@ List all quizzes with question counts.
     "title": "General Knowledge",
     "description": "Test your general knowledge across a range of topics.",
     "timeLimitSeconds": 60,
-    "questionCount": 6
+    "questionCount": 6,
+    "creatorName": "Alice"
   }
 ]
 ```
 
-Results are sorted alphabetically by title.
+Results are sorted alphabetically by title, filtering for `visibility: "public"`.
 
 ---
 
@@ -147,6 +148,9 @@ Get a single quiz with its questions. **The `answer` field is intentionally omit
   "title": "General Knowledge",
   "description": "Test your general knowledge across a range of topics.",
   "timeLimitSeconds": 60,
+  "createdBy": "user-uuid-...",
+  "visibility": "public",
+  "creatorName": "Alice",
   "questions": [
     {
       "id": "q1-uuid-...",
@@ -246,6 +250,50 @@ Get the top 10 scores for a quiz.
 ```
 
 Results are ordered by: percentage (desc) → score (desc) → completedAt (asc).
+
+---
+
+## User Quiz Management
+
+### POST `/api/quiz`
+
+Create a new quiz with questions.
+
+**Auth:** Required
+
+**Request Body:** Similar to `POST /api/admin/quizzes`, but allows passing an optional `visibility` field (`"public"` or `"draft"`).
+
+**Response** `201 Created`: Returns the created quiz with `questionCount`.
+
+---
+
+### PUT `/api/quiz/:id`
+
+Update a quiz and its questions. Replaces existing questions wholesale.
+
+**Auth:** Required (must be quiz creator or admin)
+
+**Response** `200 OK`: Returns the updated quiz metadata.
+
+---
+
+### DELETE `/api/quiz/:id`
+
+Delete a quiz and its questions/leaderboard.
+
+**Auth:** Required (must be quiz creator or admin)
+
+**Response** `204 No Content`
+
+---
+
+### GET `/api/my-quizzes`
+
+List all quizzes created by the authenticated user.
+
+**Auth:** Required
+
+**Response** `200 OK`: Returns a list of quizzes similar to `GET /api/quizzes` but includes drafts.
 
 ---
 

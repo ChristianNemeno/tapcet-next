@@ -33,6 +33,14 @@ classDiagram
         +DELETE_quizzes_id(req, res)
     }
 
+    class UserQuizRouter {
+        <<Router>>
+        +POST_quiz(req, res)
+        +PUT_quiz_id(req, res)
+        +DELETE_quiz_id(req, res)
+        +GET_my_quizzes(req, res)
+    }
+
     class AuthMiddleware {
         <<module>>
         +authenticateToken(req, res, next) void
@@ -49,9 +57,11 @@ classDiagram
 
     App --> AuthRouter : mounts
     App --> QuizRouter : mounts
+    App --> UserQuizRouter : mounts
     App --> AdminRouter : mounts
     AuthRouter --> AuthMiddleware : signToken
     QuizRouter --> AuthMiddleware : optionalAuth or authenticateToken
+    UserQuizRouter --> AuthMiddleware : authenticateToken
     AdminRouter --> AuthMiddleware : authenticateToken and requireAdmin
     AuthMiddleware --> JwtPayload : signs and verifies
 ```

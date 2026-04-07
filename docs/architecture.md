@@ -140,3 +140,5 @@ sequenceDiagram
 3. **Standalone Next.js output** — In production, Next.js builds a self-contained `standalone` directory that runs with plain `node server.js`, eliminating the need for `node_modules` in the Docker image.
 
 4. **Nginx as API gateway** — In production, Nginx handles routing: `/api/*` goes to Express, everything else goes to Next.js. This removes the need for Next.js rewrites in production.
+
+5. **User-Generated Quizzes** — Normal users and admins can create their own quizzes with visibility scopes (`public` or `draft`). This democratizes content creation while keeping drafts private to the creator.
