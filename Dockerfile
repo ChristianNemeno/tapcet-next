@@ -8,7 +8,7 @@ RUN npm run build
 FROM node:20-alpine AS server-builder
 WORKDIR /app/server
 COPY server/package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 COPY server/ ./
 RUN npm run build
 
@@ -17,7 +17,7 @@ WORKDIR /app
 
 
 COPY server/package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --legacy-peer-deps
 
 
 COPY --from=server-builder /app/server/dist ./dist
