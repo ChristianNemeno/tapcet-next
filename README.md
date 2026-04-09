@@ -1,53 +1,86 @@
 # Tapcet
 
-**Tapcet** is a community-driven reviewer app for scholars in the Philippines. It is built as a hub for browsing, sharing, and taking quizzes for exam preparation, especially for college entrance tests and other academic reviewers.
+**Tapcet** is a free, community-driven reviewer platform built specifically for Filipino students preparing for college entrance examinations and scholarship tests — UPCAT, ACET, USTET, DLSUCET, PUPCET, DOST-SEI, JLSS, and more.
 
-The product is designed around practical study habits: find a quiz, test what you know, review your results, and keep coming back to sharpen weak areas. The current focus is a scholar-first quiz and reviewer platform, not a full intelligent tutoring system.
+The platform gives students a place to practice under real exam conditions, track their progress across subjects, and access quizzes made by the community — without paying for a review center.
+
+---
+
+## The Problem It Solves
+
+Filipino students often prepare for 2–4 entrance exams in a single season, each with different formats, subjects, and scoring rules. Review centers are expensive. Practice materials are scattered across chat groups, PDFs, and informal notes. There is no central, free, interactive place to practice specifically for these exams.
+
+Tapcet is that place.
+
+---
+
+## Target Exams and Scholarships
+
+| Exam / Scholarship | Institution | What It's For |
+|--------------------|-------------|---------------|
+| **UPCAT** | University of the Philippines | Admission to any UP campus nationwide |
+| **ACET** | Ateneo de Manila University | Admission to AdMU; includes essay section |
+| **USTET** | University of Santo Tomas | Admission to UST undergraduate programs |
+| **DLSUCET** | De La Salle University | Admission to DLSU; no guessing penalty |
+| **PUPCET** | Polytechnic University of the Philippines | Free tuition; ~50,000 annual takers |
+| **DOST-SEI Merit** | Dept. of Science and Technology | Full STEM scholarship for HS graduates |
+| **JLSS** | Dept. of Science and Technology | Mid-degree STEM scholarship for 2nd-year college students |
+
+Each exam has different sections, time limits, and scoring rules. Tapcet is designed to reflect those differences — not flatten them into a generic quiz format.
+
+---
 
 ## Who It Is For
 
-- Senior high school students preparing for college entrance exams
-- College applicants looking for repeatable reviewer practice
-- Learners who want a central place to access community-made quiz content
-- Student communities that want to share review materials in quiz form
+- **Grade 11–12 students** preparing for one or more college entrance exams
+- **College applicants** who cannot afford or access a review center
+- **2nd-year STEM students** preparing for DOST JLSS scholarship exams
+- **Teachers and review instructors** building quiz sets for their students
+- **Student communities** sharing practice materials in a structured, repeatable format
 
-## What Tapcet Is Today
-
-Tapcet is a reviewer hub built around community-created quizzes and lightweight progress tracking. It gives learners a clean place to browse available quizzes, take timed assessments, compare scores, and revisit their performance over time.
-
-The product identity is intentionally narrow:
-- a quiz reviewer app first
-- a scholar hub for shared practice materials
-- a community-driven study platform
-
-It is not currently positioned as a full adaptive learning or intelligent tutoring product.
+---
 
 ## Core Features
 
-- Browse publicly available quizzes from a shared quiz library
-- Take timed quizzes with optional nickname-based participation
-- Register and log in to keep a personal dashboard of attempts
-- View quiz results with per-question breakdowns
-- Compare performance on quiz leaderboards
-- Create and manage quizzes through the admin interface
+- Browse and take quizzes organized by exam and subject
+- Timed quiz sessions that reflect actual exam conditions
+- Per-question result breakdowns showing correct answers and explanations
+- Personal dashboard tracking attempt history across quizzes
+- Leaderboards for score comparison
+- Community quiz creation — any registered user can build and share quizzes
+- Admin tools for managing official, curated quiz sets
 
-## Why Community-Driven Matters
+---
 
-Reviewer materials are often scattered across notes, chat groups, and informal document collections. Tapcet aims to bring those practice materials into one place where quiz content can be shared in a format that is easier to repeat, compare, and improve.
+## Subjects Covered
 
-A community-driven reviewer hub also makes the platform more useful over time:
-- more contributors can expand subject coverage
-- learners can discover quizzes beyond their own circles
-- quiz practice becomes easier to revisit and standardize
+Tapcet's content is organized around the subjects tested across all major CETs:
+
+- **English** — grammar, vocabulary, reading comprehension
+- **Mathematics** — arithmetic, algebra, geometry, statistics, word problems
+- **Science** — biology, chemistry, physics, earth science
+- **Abstract / Logical Reasoning** — patterns, analogies, spatial reasoning
+- **Filipino** — language proficiency and reading comprehension (UPCAT)
+- **Mechanical-Technical** — simple machines, diagrams, spatial reasoning (DOST/JLSS)
+- **General Information** — Philippine history, geography, current events (PUPCET)
+
+See [`docs/research/subject-coverage.md`](./docs/research/subject-coverage.md) for the full topic breakdown per exam.
+
+---
 
 ## Tech Overview
 
-Tapcet is a monorepo with:
+Tapcet is a monorepo:
 
-- `client/` — Next.js 16 frontend
-- `server/` — Express API
-- PostgreSQL for persistence
-- Docker, Nginx, and Cloudflare Tunnel support for deployment
+| Directory | Stack |
+|-----------|-------|
+| `client/` | Next.js 16, React 19, Tailwind CSS, TypeScript |
+| `server/` | Express, Drizzle ORM, PostgreSQL, TypeScript |
+| `docs/` | Architecture, API reference, research |
+
+Deployment: Docker + Nginx + Cloudflare Tunnel.
+
+---
 
 ## Quick Start
 
@@ -55,43 +88,41 @@ Tapcet is a monorepo with:
 git clone <repo-url>
 cd tapcet-next
 cp .env.example .env
-npm run install:all
+# Set JWT_SECRET and database credentials in .env
+docker compose up -d --build
 ```
 
-Run the app in two terminals:
+Open `http://localhost:80`.
 
-```bash
-npm run dev:server
-```
+For local development without Docker, see [Getting Started](./docs/getting-started.md).
 
-```bash
-npm run dev:client
-```
-
-Then open `http://localhost:3000`.
-
-For full setup details, see [Getting Started](./docs/getting-started.md).
+---
 
 ## Documentation
 
 | Document | Description |
-|---|---|
-| [Architecture](./docs/architecture.md) | System overview, stack, monorepo structure, and request flow |
-| [Getting Started](./docs/getting-started.md) | Installation, environment setup, and local development |
-| [API Reference](./docs/api-reference.md) | REST API endpoints and request/response examples |
-| [Database](./docs/database.md) | Schema design, migrations, and seeding |
-| [Client](./docs/client.md) | Frontend pages, routing, auth context, and UI structure |
-| [Deployment](./docs/deployment.md) | Docker, Nginx, and production deployment notes |
+|----------|-------------|
+| [Architecture](./docs/architecture.md) | System overview, stack, and request flow |
+| [Getting Started](./docs/getting-started.md) | Installation, environment setup, local development |
+| [API Reference](./docs/api-reference.md) | REST endpoints and request/response examples |
+| [Database](./docs/database.md) | Schema, migrations, and seeding |
+| [Client](./docs/client.md) | Frontend pages, routing, auth context, UI |
+| [Deployment](./docs/deployment.md) | Docker, Nginx, and production notes |
 | [Contributing](./docs/contributing.md) | Development workflow and contribution guidance |
+| [Research](./docs/research/README.md) | Exam formats, subject coverage, and platform strategy |
 
-## Future Recommendations
+---
 
-If Tapcet expands beyond its current reviewer-hub scope, the next logical step is light adaptive learning rather than a full tutoring-platform pivot.
+## Roadmap Direction
 
-Good future additions would be:
-- recommended next quizzes based on past attempts
-- weak-topic surfacing from incorrect answers
-- review queues for missed questions
-- personalized study suggestions across quiz categories
+The next phase of Tapcet focuses on making it genuinely exam-specific:
 
-That would let Tapcet grow toward an intelligent tutoring direction without losing its core identity as a community-driven reviewer app for scholars.
+- Exam tags on quizzes (UPCAT, ACET, USTET, etc.)
+- Subject and topic taxonomy mapped to actual exam coverage
+- Penalized scoring mode for UPCAT (right-minus-wrong)
+- Section-level timers matching each exam's actual time structure
+- Full mock exam simulator per target school
+- Per-topic performance analytics
+- Curated official quiz banks maintained by admins
+
+See [`docs/research/platform-strategy.md`](./docs/research/platform-strategy.md) for the full product direction.
