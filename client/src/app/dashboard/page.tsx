@@ -9,12 +9,12 @@ import type { DashboardEntry, MyQuizSummary } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,11 +27,308 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type Section = "overview" | "attempts" | "my-quizzes";
+
+const NAV_ITEMS: { id: Section; label: string; symbol: string }[] = [
+  { id: "overview", label: "Overview", symbol: "~" },
+  { id: "attempts", label: "Attempts", symbol: "→" },
+  { id: "my-quizzes", label: "My Quizzes", symbol: "+" },
+];
+
+function getInitials(name: string | null): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function StatCard({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: string | number;
+  loading: boolean;
+}) {
+  return (
+    <Card size="sm">
+      <CardContent className="pt-3">
+        {loading ? (
+          <>
+            <Skeleton className="h-7 w-16 mb-1" />
+            <Skeleton className="h-3 w-24" />
+          </>
+        ) : (
+          <>
+            <p className="font-mono font-semibold text-2xl tracking-tight text-foreground">
+              {value}
+            </p>
+            <p className="font-mono text-xs text-muted-foreground mt-0.5 tracking-wide">
+              {label}
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function OverviewSection({
+  entries,
+  myQuizzes,
+  loadingAttempts,
+  loadingQuizzes,
+}: {
+  entries: DashboardEntry[];
+  myQuizzes: MyQuizSummary[];
+  loadingAttempts: boolean;
+  loadingQuizzes: boolean;
+}) {
+  const totalAttempts = entries.length;
+  const avgScore =
+    totalAttempts > 0
+      ? Math.round(entries.reduce((s, e) => s + e.percentage, 0) / totalAttempts)
+      : 0;
+  const bestScore =
+    totalAttempts > 0 ? Math.round(Math.max(...entries.map((e) => e.percentage))) : 0;
+  const totalCreated = myQuizzes.length;
+  const publicCount = myQuizzes.filter((q) => q.visibility === "public").length;
+  const totalQuestions = myQuizzes.reduce((s, q) => s + q.questionCount, 0);
+
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-1">
+          Overview
+        </p>
+        <h2 className="font-mono font-bold text-xl tracking-tight">
+          Your stats<span className="text-primary">.</span>
+        </h2>
+      </div>
+
+      <div className="mb-6">
+        <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">
+          Quiz Taking
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <StatCard label="total attempts" value={totalAttempts} loading={loadingAttempts} />
+          <StatCard label="average score" value={`${avgScore}%`} loading={loadingAttempts} />
+          <StatCard label="best score" value={`${bestScore}%`} loading={loadingAttempts} />
+        </div>
+      </div>
+
+      <div>
+        <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">
+          Quiz Creation
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <StatCard label="quizzes created" value={totalCreated} loading={loadingQuizzes} />
+          <StatCard label="public quizzes" value={publicCount} loading={loadingQuizzes} />
+          <StatCard label="questions authored" value={totalQuestions} loading={loadingQuizzes} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AttemptsSection({
+  entries,
+  loading,
+}: {
+  entries: DashboardEntry[];
+  loading: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-1">
+          History
+        </p>
+        <h2 className="font-mono font-bold text-xl tracking-tight">
+          Quizzes taken<span className="text-primary">.</span>
+        </h2>
+      </div>
+
+      <div className="flex items-center gap-4 px-1 pb-3 border-b border-border font-mono text-xs text-muted-foreground tracking-tight">
+        <span className="flex-1">Quiz</span>
+        <span className="w-16 text-right">Score</span>
+        <span className="w-12 text-right">%</span>
+        <span className="w-20 text-right">Date</span>
+      </div>
+      <div className="divide-y divide-border">
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-1 py-4">
+                <Skeleton className="h-4 w-32 flex-1" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-10" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            ))
+          : entries.length === 0
+          ? (
+              <div className="py-12 text-center">
+                <p className="font-mono text-sm text-muted-foreground">
+                  No attempts yet.{" "}
+                  <Link href="/" className="text-primary hover:underline underline-offset-4">
+                    Take a quiz
+                  </Link>
+                </p>
+              </div>
+            )
+          : entries.map((e) => (
+              <div key={e.id} className="flex items-center gap-4 px-1 py-4">
+                <Link
+                  href={`/quiz/${e.quizId}/leaderboard`}
+                  className="font-mono text-sm flex-1 truncate hover:text-primary transition-colors"
+                >
+                  {e.quizTitle}
+                </Link>
+                <span className="font-mono text-sm text-right w-16 tabular-nums">
+                  {e.score}/{e.total}
+                </span>
+                <span
+                  className={`font-mono text-xs text-right w-12 tabular-nums ${
+                    e.percentage >= 60 ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  {Math.round(e.percentage)}%
+                </span>
+                <span className="font-mono text-xs text-muted-foreground text-right w-20 tabular-nums">
+                  {new Date(e.completedAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+      </div>
+    </div>
+  );
+}
+
+function MyQuizzesSection({
+  myQuizzes,
+  loading,
+  onDelete,
+}: {
+  myQuizzes: MyQuizSummary[];
+  loading: boolean;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-1">
+            Created
+          </p>
+          <h2 className="font-mono font-bold text-xl tracking-tight">
+            My quizzes<span className="text-primary">.</span>
+          </h2>
+        </div>
+        <Link href="/quiz/create">
+          <Button size="sm" className="font-mono text-xs tracking-tight">
+            + create quiz
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-4 px-1 pb-3 border-b border-border font-mono text-xs text-muted-foreground tracking-tight">
+        <span className="flex-1">Title</span>
+        <span className="w-10 text-right">Qs</span>
+        <span className="w-14 text-right">Status</span>
+        <span className="w-24 text-right">Actions</span>
+      </div>
+
+      <div className="divide-y divide-border">
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-1 py-4">
+                <Skeleton className="h-4 w-40 flex-1" />
+                <Skeleton className="h-4 w-8" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))
+          : myQuizzes.length === 0
+          ? (
+              <div className="py-12 text-center">
+                <p className="font-mono text-sm text-muted-foreground">
+                  No quizzes yet.{" "}
+                  <Link href="/quiz/create" className="text-primary hover:underline underline-offset-4">
+                    Create one
+                  </Link>
+                </p>
+              </div>
+            )
+          : myQuizzes.map((q) => (
+              <div key={q.id} className="flex items-center gap-4 px-1 py-4">
+                <Link
+                  href={`/quiz/${q.id}`}
+                  className="font-mono text-sm flex-1 truncate hover:text-primary transition-colors"
+                >
+                  {q.title}
+                </Link>
+                <span className="font-mono text-xs text-muted-foreground text-right w-10 tabular-nums">
+                  {q.questionCount}
+                </span>
+                <div className="w-14 flex justify-end">
+                  <Badge
+                    variant={q.visibility === "public" ? "default" : "secondary"}
+                    className="font-mono text-xs"
+                  >
+                    {q.visibility}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 justify-end w-24">
+                  <Link href={`/quiz/${q.id}/edit`}>
+                    <button className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      edit
+                    </button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <button className="font-mono text-xs text-muted-foreground hover:text-destructive transition-colors" />
+                      }
+                    >
+                      delete
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="font-mono tracking-tight">
+                          Delete &ldquo;{q.title}&rdquo;?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the quiz and all leaderboard entries.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => onDelete(q.id)}
+                          className="font-mono text-xs bg-destructive text-white hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            ))}
+      </div>
+    </div>
+  );
+}
+
 function DashboardContent() {
-  const { token, name } = useAuth();
+  const { token, name, role } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultTab = searchParams.get("tab") ?? "attempts";
+  const section = (searchParams.get("section") ?? "overview") as Section;
 
   const [entries, setEntries] = useState<DashboardEntry[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<MyQuizSummary[]>([]);
@@ -66,182 +363,85 @@ function DashboardContent() {
     }
   }
 
+  function navigate(s: Section) {
+    router.push(`/dashboard?section=${s}`);
+  }
+
   return (
-    <div className="mx-auto max-w-3xl px-6 py-20">
-      <div className="mb-12">
-        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-2">
-          Dashboard
-        </p>
-        <h1 className="font-mono font-bold text-2xl tracking-tight">
-          Welcome back, {name}<span className="text-primary">.</span>
-        </h1>
-      </div>
-
-      {error && (
-        <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2 mb-6">
-          {error}
-        </div>
-      )}
-
-      <Tabs defaultValue={defaultTab}>
-        <TabsList className="font-mono text-xs mb-8">
-          <TabsTrigger value="attempts">My Attempts</TabsTrigger>
-          <TabsTrigger value="my-quizzes">My Quizzes</TabsTrigger>
-        </TabsList>
-
-        {/* Attempts tab */}
-        <TabsContent value="attempts">
-          <div className="flex items-center gap-4 px-1 pb-3 border-b border-border font-mono text-xs text-muted-foreground tracking-tight">
-            <span className="flex-1">Quiz</span>
-            <span className="w-16 text-right">Score</span>
-            <span className="w-12 text-right">%</span>
-            <span className="w-20 text-right">Date</span>
-          </div>
-          <div className="divide-y divide-border">
-            {loadingAttempts
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-4 px-1 py-4">
-                    <Skeleton className="h-4 w-32 flex-1" />
-                    <Skeleton className="h-4 w-12" />
-                    <Skeleton className="h-4 w-10" />
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                ))
-              : entries.length === 0
-              ? (
-                  <div className="py-12 text-center">
-                    <p className="font-mono text-sm text-muted-foreground">
-                      No attempts yet.{" "}
-                      <Link href="/" className="text-primary hover:underline underline-offset-4">
-                        Take a quiz
-                      </Link>
-                    </p>
-                  </div>
-                )
-              : entries.map((e) => (
-                  <div key={e.id} className="flex items-center gap-4 px-1 py-4">
-                    <Link
-                      href={`/quiz/${e.quizId}/leaderboard`}
-                      className="font-mono text-sm flex-1 truncate hover:text-primary transition-colors"
-                    >
-                      {e.quizTitle}
-                    </Link>
-                    <span className="font-mono text-sm text-right w-16 tabular-nums">
-                      {e.score}/{e.total}
-                    </span>
-                    <span className={`font-mono text-xs text-right w-12 tabular-nums ${
-                      e.percentage >= 60 ? "text-primary" : "text-muted-foreground"
-                    }`}>
-                      {Math.round(e.percentage)}%
-                    </span>
-                    <span className="font-mono text-xs text-muted-foreground text-right w-20 tabular-nums">
-                      {new Date(e.completedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                ))}
-          </div>
-        </TabsContent>
-
-        {/* My Quizzes tab */}
-        <TabsContent value="my-quizzes">
-          <div className="flex items-center justify-between mb-6">
-            <p className="font-mono text-xs text-muted-foreground">
-              {!loadingQuizzes && `${myQuizzes.length} quiz${myQuizzes.length !== 1 ? "zes" : ""}`}
+    <div className="flex min-h-[calc(100vh-4rem)]">
+      {/* Sidebar */}
+      <aside className="w-52 shrink-0 border-r border-border flex flex-col px-4 py-8 gap-6">
+        {/* Profile */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Avatar size="lg" className="size-12">
+            <AvatarFallback className="font-mono text-sm font-semibold bg-primary/10 text-primary">
+              {getInitials(name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-mono text-sm font-semibold tracking-tight leading-tight">
+              {name}
             </p>
-            <Link href="/quiz/create">
-              <Button size="sm" className="font-mono text-xs tracking-tight">
-                + create quiz
-              </Button>
-            </Link>
+            <Badge
+              variant={role === "admin" ? "default" : "secondary"}
+              className="font-mono text-xs mt-1"
+            >
+              {role ?? "user"}
+            </Badge>
           </div>
+        </div>
 
-          <div className="flex items-center gap-4 px-1 pb-3 border-b border-border font-mono text-xs text-muted-foreground tracking-tight">
-            <span className="flex-1">Title</span>
-            <span className="w-10 text-right">Qs</span>
-            <span className="w-14 text-right">Status</span>
-            <span className="w-24 text-right">Actions</span>
-          </div>
+        <Separator />
 
-          <div className="divide-y divide-border">
-            {loadingQuizzes
-              ? Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-4 px-1 py-4">
-                    <Skeleton className="h-4 w-40 flex-1" />
-                    <Skeleton className="h-4 w-8" />
-                    <Skeleton className="h-4 w-12" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                ))
-              : myQuizzes.length === 0
-              ? (
-                  <div className="py-12 text-center">
-                    <p className="font-mono text-sm text-muted-foreground">
-                      No quizzes yet.{" "}
-                      <Link href="/quiz/create" className="text-primary hover:underline underline-offset-4">
-                        Create one
-                      </Link>
-                    </p>
-                  </div>
-                )
-              : myQuizzes.map((q) => (
-                  <div key={q.id} className="flex items-center gap-4 px-1 py-4">
-                    <Link
-                      href={`/quiz/${q.id}`}
-                      className="font-mono text-sm flex-1 truncate hover:text-primary transition-colors"
-                    >
-                      {q.title}
-                    </Link>
-                    <span className="font-mono text-xs text-muted-foreground text-right w-10 tabular-nums">
-                      {q.questionCount}
-                    </span>
-                    <div className="w-14 flex justify-end">
-                      <Badge
-                        variant={q.visibility === "public" ? "default" : "secondary"}
-                        className="font-mono text-xs"
-                      >
-                        {q.visibility}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 justify-end w-24">
-                      <Link href={`/quiz/${q.id}/edit`}>
-                        <button className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors">
-                          edit
-                        </button>
-                      </Link>
-                      <AlertDialog>
-                        <AlertDialogTrigger
-                          render={
-                            <button className="font-mono text-xs text-muted-foreground hover:text-destructive transition-colors" />
-                          }
-                        >
-                          delete
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="font-mono tracking-tight">
-                              Delete &ldquo;{q.title}&rdquo;?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete the quiz and all leaderboard entries.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="font-mono text-xs">Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteQuiz(q.id)}
-                              className="font-mono text-xs bg-destructive text-white hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                ))}
+        {/* Nav */}
+        <nav className="flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => {
+            const active = section === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigate(item.id)}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded text-left font-mono text-xs tracking-tight transition-colors w-full ${
+                  active
+                    ? "text-primary bg-primary/8 border-l-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-l-2 border-transparent"
+                }`}
+              >
+                <span className="text-base leading-none w-3 text-center">{item.symbol}</span>
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 px-8 py-8 min-w-0">
+        {error && (
+          <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2 mb-6">
+            {error}
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+
+        {section === "overview" && (
+          <OverviewSection
+            entries={entries}
+            myQuizzes={myQuizzes}
+            loadingAttempts={loadingAttempts}
+            loadingQuizzes={loadingQuizzes}
+          />
+        )}
+        {section === "attempts" && (
+          <AttemptsSection entries={entries} loading={loadingAttempts} />
+        )}
+        {section === "my-quizzes" && (
+          <MyQuizzesSection
+            myQuizzes={myQuizzes}
+            loading={loadingQuizzes}
+            onDelete={handleDeleteQuiz}
+          />
+        )}
+      </main>
     </div>
   );
 }
