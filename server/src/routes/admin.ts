@@ -10,10 +10,13 @@ router.use(authenticateToken, requireAdmin);
 // POST /api/admin/quizzes — create quiz with questions
 router.post("/quizzes", async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds, questions: qs } = req.body as {
+    const { title, description, timeLimitSeconds, examTags, subject, topic, questions: qs } = req.body as {
       title?: string;
       description?: string;
       timeLimitSeconds?: number;
+      examTags?: string[];
+      subject?: string | null;
+      topic?: string | null;
       questions?: Array<{ text: string; options: string[]; answer: number }>;
     };
 
@@ -24,7 +27,14 @@ router.post("/quizzes", async (req, res, next) => {
 
     const [quiz] = await db
       .insert(quizzes)
-      .values({ title, description: description ?? "", timeLimitSeconds: timeLimitSeconds ?? null })
+      .values({
+        title,
+        description: description ?? "",
+        timeLimitSeconds: timeLimitSeconds ?? null,
+        examTags: examTags ?? [],
+        subject: subject ?? null,
+        topic: topic ?? null,
+      })
       .returning();
 
     await db.insert(questions).values(
@@ -46,10 +56,13 @@ router.post("/quizzes", async (req, res, next) => {
 // PUT /api/admin/quizzes/:id — update quiz metadata
 router.put("/quizzes/:id", async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds } = req.body as {
+    const { title, description, timeLimitSeconds, examTags, subject, topic } = req.body as {
       title?: string;
       description?: string;
       timeLimitSeconds?: number | null;
+      examTags?: string[];
+      subject?: string | null;
+      topic?: string | null;
     };
 
     const [updated] = await db
@@ -58,6 +71,9 @@ router.put("/quizzes/:id", async (req, res, next) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(timeLimitSeconds !== undefined && { timeLimitSeconds }),
+        ...(examTags !== undefined && { examTags }),
+        ...(subject !== undefined && { subject }),
+        ...(topic !== undefined && { topic }),
       })
       .where(eq(quizzes.id, req.params.id))
       .returning();

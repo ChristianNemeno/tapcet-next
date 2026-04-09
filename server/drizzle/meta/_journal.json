@@ -15,6 +15,13 @@
       "when": 1775484795389,
       "tag": "0001_pale_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775570000000,
+      "tag": "0002_exam_subject_tags",
+      "breakpoints": true
     }
   ]
 }

@@ -24,8 +24,11 @@ function authHeader(token?: string | null): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function fetchQuizzes(): Promise<QuizSummary[]> {
-  return parseResponse(await fetch(`${BASE}/quizzes`));
+export async function fetchQuizzes(params?: { exam?: string; subject?: string }): Promise<QuizSummary[]> {
+  const url = new URL(`${BASE}/quizzes`, window.location.origin);
+  if (params?.exam) url.searchParams.set("exam", params.exam);
+  if (params?.subject) url.searchParams.set("subject", params.subject);
+  return parseResponse(await fetch(url.toString()));
 }
 
 export async function fetchQuiz(id: string): Promise<QuizDetail> {

@@ -1,28 +1,36 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { quizzes, questions, leaderboard, users } from "../db/schema.js";
-import { eq, count, desc, asc } from "drizzle-orm";
+import { eq, count, desc, asc, and, arrayContains } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
 
 // GET /api/quizzes — list public quizzes with question count and creator name
-router.get("/quizzes", async (_req, res, next) => {
+router.get("/quizzes", async (req, res, next) => {
   try {
+    const { exam, subject } = req.query as { exam?: string; subject?: string };
+    const conditions = [eq(quizzes.visibility, "public")];
+    if (exam) conditions.push(arrayContains(quizzes.examTags, [exam]));
+    if (subject) conditions.push(eq(quizzes.subject, subject));
+
     const rows = await db
       .select({
         id: quizzes.id,
         title: quizzes.title,
         description: quizzes.description,
         timeLimitSeconds: quizzes.timeLimitSeconds,
+        examTags: quizzes.examTags,
+        subject: quizzes.subject,
+        topic: quizzes.topic,
         questionCount: count(questions.id),
         creatorName: users.name,
       })
       .from(quizzes)
       .leftJoin(questions, eq(questions.quizId, quizzes.id))
       .leftJoin(users, eq(users.id, quizzes.createdBy))
-      .where(eq(quizzes.visibility, "public"))
-      .groupBy(quizzes.id, users.name)
+      .where(and(...conditions))
+      .groupBy(quizzes.id, quizzes.examTags, quizzes.subject, quizzes.topic, users.name)
       .orderBy(asc(quizzes.title));
 
     res.json(rows);
@@ -40,6 +48,9 @@ router.get("/quiz/:id", async (req, res, next) => {
         title: quizzes.title,
         description: quizzes.description,
         timeLimitSeconds: quizzes.timeLimitSeconds,
+        examTags: quizzes.examTags,
+        subject: quizzes.subject,
+        topic: quizzes.topic,
         createdBy: quizzes.createdBy,
         visibility: quizzes.visibility,
         creatorName: users.name,

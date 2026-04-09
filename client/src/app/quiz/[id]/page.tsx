@@ -105,6 +105,23 @@ export default function QuizPage() {
               </>
             )}
           </div>
+          {(quiz.subject || (quiz.examTags && quiz.examTags.length > 0)) && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+              {quiz.subject && (
+                <span className="font-mono text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-sm">
+                  {quiz.subject}
+                </span>
+              )}
+              {quiz.examTags?.map((tag) => (
+                <span
+                  key={tag}
+                  className="font-mono text-xs border border-border text-muted-foreground px-2 py-0.5 rounded-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-5">

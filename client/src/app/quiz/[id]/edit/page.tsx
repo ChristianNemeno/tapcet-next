@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { fetchQuiz, updateQuiz, deleteQuiz } from "@/lib/api";
+import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,11 +36,20 @@ export default function EditQuizPage() {
   const [description, setDescription] = useState("");
   const [timeLimit, setTimeLimit] = useState("");
   const [visibility, setVisibility] = useState<"public" | "draft">("public");
+  const [examTags, setExamTags] = useState<string[]>([]);
+  const [subject, setSubject] = useState("");
+  const [topic, setTopic] = useState("");
   const [questions, setQuestions] = useState<QuestionDraft[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function toggleExamTag(tag: string) {
+    setExamTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }
 
   useEffect(() => {
     if (!token) {
@@ -52,6 +62,9 @@ export default function EditQuizPage() {
         setDescription(quiz.description ?? "");
         setTimeLimit(quiz.timeLimitSeconds ? String(quiz.timeLimitSeconds) : "");
         setVisibility(quiz.visibility ?? "public");
+        setExamTags(quiz.examTags ?? []);
+        setSubject(quiz.subject ?? "");
+        setTopic(quiz.topic ?? "");
         setQuestions(
           quiz.questions.map((q) => ({
             text: q.text,
@@ -93,6 +106,9 @@ export default function EditQuizPage() {
           description,
           timeLimitSeconds: timeLimit ? parseInt(timeLimit) : null,
           visibility,
+          examTags,
+          subject: subject || null,
+          topic: topic || null,
           questions: questions.map((q) => ({
             text: q.text,
             options: q.options,
@@ -233,6 +249,51 @@ export default function EditQuizPage() {
                 <span className="font-mono text-sm">{v}</span>
               </label>
             ))}
+          </div>
+        </div>
+
+        {/* Exam tags */}
+        <div className="space-y-2">
+          <p className="font-mono text-xs tracking-tight">Target exams</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {EXAM_TAGS.map((tag) => (
+              <label key={tag} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={examTags.includes(tag)}
+                  onChange={() => toggleExamTag(tag)}
+                  className="accent-primary"
+                />
+                <span className="font-mono text-sm">{tag}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="subject" className="font-mono text-xs tracking-tight">Subject</Label>
+            <select
+              id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full font-mono text-sm bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">— none —</option>
+              {SUBJECTS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="topic" className="font-mono text-xs tracking-tight">Topic</Label>
+            <Input
+              id="topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g. Quadratic Equations"
+              className="font-mono text-sm"
+            />
           </div>
         </div>
 

@@ -7,6 +7,9 @@ const seedData = [
     title: "General Knowledge",
     description: "Test your general knowledge across a range of topics.",
     timeLimitSeconds: 60,
+    examTags: ["UPCAT", "ACET", "USTET", "DLSUCET", "PUPCET"],
+    subject: "General Information",
+    topic: "Mixed Topics",
     questions: [
       { text: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: 2, orderIndex: 0 },
       { text: "How many continents are there on Earth?", options: ["5", "6", "7", "8"], answer: 2, orderIndex: 1 },
@@ -20,6 +23,9 @@ const seedData = [
     title: "Web Development",
     description: "How well do you know the web? HTML, CSS, JS and more.",
     timeLimitSeconds: 90,
+    examTags: [],
+    subject: null,
+    topic: "Web Technologies",
     questions: [
       { text: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"], answer: 0, orderIndex: 0 },
       { text: "Which CSS property controls text size?", options: ["font-weight", "text-size", "font-size", "text-style"], answer: 2, orderIndex: 1 },
@@ -33,6 +39,9 @@ const seedData = [
     title: "Science & Nature",
     description: "Explore the world of science — biology, physics, and chemistry.",
     timeLimitSeconds: 75,
+    examTags: ["UPCAT", "DOST-SEI", "JLSS"],
+    subject: "Science",
+    topic: "General Science",
     questions: [
       { text: "What is the speed of light?", options: ["300,000 km/s", "150,000 km/s", "450,000 km/s", "3,000 km/s"], answer: 0, orderIndex: 0 },
       { text: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"], answer: 2, orderIndex: 1 },
@@ -58,6 +67,9 @@ export async function seed() {
         title: quiz.title,
         description: quiz.description,
         timeLimitSeconds: quiz.timeLimitSeconds,
+        examTags: quiz.examTags,
+        subject: quiz.subject,
+        topic: quiz.topic,
       })
       .returning();
 

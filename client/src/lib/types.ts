@@ -3,6 +3,9 @@ export interface QuizSummary {
   title: string;
   description: string;
   timeLimitSeconds: number | null;
+  examTags: string[];
+  subject: string | null;
+  topic: string | null;
   questionCount: number;
   creatorName: string | null;
 }
@@ -25,6 +28,9 @@ export interface MyQuizSummary {
   title: string;
   description: string;
   timeLimitSeconds: number | null;
+  examTags: string[];
+  subject: string | null;
+  topic: string | null;
   questionCount: number;
   visibility: "public" | "draft";
 }
@@ -34,6 +40,9 @@ export interface QuizFormPayload {
   description: string;
   timeLimitSeconds?: number | null;
   visibility: "public" | "draft";
+  examTags?: string[];
+  subject?: string | null;
+  topic?: string | null;
   questions: Array<{ text: string; options: string[]; answer: number }>;
 }
 

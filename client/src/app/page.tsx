@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchQuizzes } from "@/lib/api";
 import type { QuizSummary } from "@/lib/types";
+import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,13 +12,21 @@ export default function HomePage() {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [examFilter, setExamFilter] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("");
 
   useEffect(() => {
-    fetchQuizzes()
+    setLoading(true);
+    fetchQuizzes({
+      exam: examFilter || undefined,
+      subject: subjectFilter || undefined,
+    })
       .then(setQuizzes)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [examFilter, subjectFilter]);
+
+  const filtersActive = examFilter !== "" || subjectFilter !== "";
 
   return (
     <div>
@@ -41,13 +50,45 @@ export default function HomePage() {
 
       {/* Quiz listing */}
       <section className="mx-auto max-w-3xl px-6 py-16">
-        <div className="flex items-baseline justify-between mb-10">
+        <div className="flex items-baseline justify-between mb-6">
           <h2 className="font-mono font-semibold text-sm tracking-tight text-muted-foreground uppercase">
             Available Quizzes
           </h2>
           <span className="font-mono text-xs text-muted-foreground">
             {!loading && `${quizzes.length} total`}
           </span>
+        </div>
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-3 mb-8">
+          <select
+            value={examFilter}
+            onChange={(e) => setExamFilter(e.target.value)}
+            className="font-mono text-xs bg-background border border-border rounded-sm px-3 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">All exams</option>
+            {EXAM_TAGS.map((tag) => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+          <select
+            value={subjectFilter}
+            onChange={(e) => setSubjectFilter(e.target.value)}
+            className="font-mono text-xs bg-background border border-border rounded-sm px-3 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">All subjects</option>
+            {SUBJECTS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {filtersActive && (
+            <button
+              onClick={() => { setExamFilter(""); setSubjectFilter(""); }}
+              className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              clear filters
+            </button>
+          )}
         </div>
 
         {error && <p className="text-destructive text-sm mb-6">{error}</p>}
@@ -80,6 +121,24 @@ export default function HomePage() {
                           {quiz.description}
                         </p>
                       )}
+                      {/* Tag badges */}
+                      {(quiz.subject || quiz.examTags.length > 0) && (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          {quiz.subject && (
+                            <span className="font-mono text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-sm">
+                              {quiz.subject}
+                            </span>
+                          )}
+                          {quiz.examTags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="font-mono text-xs border border-border text-muted-foreground px-2 py-0.5 rounded-sm"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 mt-3">
                         <span className="font-mono text-xs text-muted-foreground">
                           {quiz.questionCount} questions
@@ -109,7 +168,7 @@ export default function HomePage() {
         {!loading && quizzes.length === 0 && !error && (
           <div className="text-center py-16">
             <p className="font-mono text-sm text-muted-foreground">
-              No quizzes yet. Check back soon.
+              {filtersActive ? "No quizzes match your filters." : "No quizzes yet. Check back soon."}
             </p>
           </div>
         )}

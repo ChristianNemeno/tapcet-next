@@ -17,12 +17,15 @@ function canMutate(
 // POST /api/quiz — authenticated user creates a quiz with questions
 router.post("/quiz", authenticateToken, async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds, visibility, questions: qs } =
+    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, questions: qs } =
       req.body as {
         title?: string;
         description?: string;
         timeLimitSeconds?: number;
         visibility?: "public" | "draft";
+        examTags?: string[];
+        subject?: string | null;
+        topic?: string | null;
         questions?: Array<{ text: string; options: string[]; answer: number }>;
       };
 
@@ -39,6 +42,9 @@ router.post("/quiz", authenticateToken, async (req, res, next) => {
         timeLimitSeconds: timeLimitSeconds ?? null,
         createdBy: req.user!.userId,
         visibility: visibility ?? "public",
+        examTags: examTags ?? [],
+        subject: subject ?? null,
+        topic: topic ?? null,
       })
       .returning();
 
@@ -77,12 +83,15 @@ router.put("/quiz/:id", authenticateToken, async (req, res, next) => {
       return;
     }
 
-    const { title, description, timeLimitSeconds, visibility, questions: qs } =
+    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, questions: qs } =
       req.body as {
         title?: string;
         description?: string;
         timeLimitSeconds?: number | null;
         visibility?: "public" | "draft";
+        examTags?: string[];
+        subject?: string | null;
+        topic?: string | null;
         questions?: Array<{ text: string; options: string[]; answer: number }>;
       };
 
@@ -93,6 +102,9 @@ router.put("/quiz/:id", authenticateToken, async (req, res, next) => {
         ...(description !== undefined && { description }),
         ...(timeLimitSeconds !== undefined && { timeLimitSeconds }),
         ...(visibility !== undefined && { visibility }),
+        ...(examTags !== undefined && { examTags }),
+        ...(subject !== undefined && { subject }),
+        ...(topic !== undefined && { topic }),
       })
       .where(eq(quizzes.id, req.params.id))
       .returning();
@@ -152,12 +164,15 @@ router.get("/my-quizzes", authenticateToken, async (req, res, next) => {
         description: quizzes.description,
         timeLimitSeconds: quizzes.timeLimitSeconds,
         visibility: quizzes.visibility,
+        examTags: quizzes.examTags,
+        subject: quizzes.subject,
+        topic: quizzes.topic,
         questionCount: count(questions.id),
       })
       .from(quizzes)
       .leftJoin(questions, eq(questions.quizId, quizzes.id))
       .where(eq(quizzes.createdBy, req.user!.userId))
-      .groupBy(quizzes.id)
+      .groupBy(quizzes.id, quizzes.examTags, quizzes.subject, quizzes.topic)
       .orderBy(asc(quizzes.title));
 
     res.json(rows);

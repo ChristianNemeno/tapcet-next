@@ -28,6 +28,9 @@ export const quizzes = pgTable("quizzes", {
   timeLimitSeconds: integer("time_limit_seconds"),
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   visibility: visibilityEnum("visibility").notNull().default("public"),
+  examTags: text("exam_tags").array().notNull().default([]),
+  subject: text("subject"),
+  topic: text("topic"),
 });
 
 export const questions = pgTable("questions", {
