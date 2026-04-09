@@ -59,11 +59,12 @@
 
 ## User Dashboard
 
-- Personalized greeting by name
-- **My Attempts tab** — quiz attempt history with scores, percentages, and dates
-- **My Quizzes tab** — quizzes created by user with visibility status
+- Sidebar navigation to toggle between sections
+- **Overview section** — personalized greeting and high-level summary
+- **My Attempts section** — quiz attempt history with scores, percentages, and dates
+- **My Quizzes section** — quizzes created by user with visibility status
 - Quick links to leaderboards from attempt history
-- Empty states for both tabs
+- Empty states for attempts and quizzes
 
 ---
 
