@@ -19,7 +19,7 @@
 ## Quiz Discovery & Browsing
 
 - Public quiz listing page
-- Quiz metadata display (title, description, question count, time limit, creator)
+- Quiz metadata display (title, description, tags, subject, topic, question count, time limit, creator)
 - Filtering by visibility (public vs. draft)
 - Alphabetical sorting by title
 - Hero section on homepage
@@ -71,7 +71,7 @@
 ## Quiz Management (User)
 
 - Create quizzes from navbar or dashboard
-- Edit quiz: title, description, time limit, visibility, questions
+- Edit quiz: title, description, time limit, visibility, exam tags, subject, topic, questions
 - Delete quiz with confirmation dialog
 - Add, remove, and reorder questions
 - 4 multiple-choice options per question with answer key selection
@@ -126,7 +126,7 @@
 | Table | Key Fields |
 |-------|-----------|
 | `users` | id, email (unique), passwordHash, name, role (user/admin), createdAt |
-| `quizzes` | id, title, description, timeLimitSeconds, createdBy, visibility (public/draft) |
+| `quizzes` | id, title, description, timeLimitSeconds, createdBy, visibility (public/draft), examTags, subject, topic |
 | `questions` | id, quizId, text, options (JSONB), answer (index), orderIndex |
 | `leaderboard` | id, quizId, userId (nullable), nickname, score, total, percentage, completedAt |
 

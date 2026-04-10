@@ -22,6 +22,9 @@ erDiagram
         integer time_limit_seconds "nullable"
         uuid created_by FK "nullable"
         visibility visibility "public | draft"
+        text[] exam_tags
+        text subject "nullable"
+        text topic "nullable"
     }
 
     QUESTIONS {
@@ -73,6 +76,9 @@ erDiagram
 | `time_limit_seconds` | `integer` | nullable | `NULL` | Time limit in seconds (`NULL` = untimed) |
 | `created_by` | `uuid` | nullable, FK → `users.id` | `NULL` | Associated creator (SET NULL on delete) |
 | `visibility` | `enum('public','draft')` | NOT NULL | `'public'` | Quiz visibility |
+| `exam_tags` | `text[]` | NOT NULL | `[]` | Array of relevant exam tags |
+| `subject` | `text` | nullable | `NULL` | Associated subject area |
+| `topic` | `text` | nullable | `NULL` | Specific topic within the subject |
 
 ### `questions`
 

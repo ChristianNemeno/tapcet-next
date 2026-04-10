@@ -203,6 +203,26 @@ npx shadcn@latest add <component-name>
 
 Components are installed into `client/src/components/ui/` and can be customized directly.
 
+## Testing
+
+This project uses [Vitest](https://vitest.dev/) for testing both the client and server.
+
+### Running Client Tests
+
+```bash
+cd client
+npm run test
+```
+This runs the UI component tests and client utility tests using a jsdom environment.
+
+### Running Server Tests
+
+```bash
+cd server
+npm run test
+```
+This runs the API route tests using an in-memory test database and mock schemas.
+
 ## Linting
 
 ```bash

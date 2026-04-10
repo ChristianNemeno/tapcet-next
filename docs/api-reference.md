@@ -124,6 +124,9 @@ List all public quizzes with question counts and creator names.
     "title": "General Knowledge",
     "description": "Test your general knowledge across a range of topics.",
     "timeLimitSeconds": 60,
+    "examTags": ["UPCAT", "ACET"],
+    "subject": "General Knowledge",
+    "topic": "Philippine History",
     "questionCount": 6,
     "creatorName": "Alice"
   }
@@ -150,6 +153,9 @@ Get a single quiz with its questions. **The `answer` field is intentionally omit
   "timeLimitSeconds": 60,
   "createdBy": "user-uuid-...",
   "visibility": "public",
+  "examTags": ["UPCAT", "ACET"],
+  "subject": "General Knowledge",
+  "topic": "Philippine History",
   "creatorName": "Alice",
   "questions": [
     {
@@ -364,6 +370,9 @@ Create a new quiz with questions.
 | `title` | string | Yes | Quiz title |
 | `description` | string | No | Defaults to `""` |
 | `timeLimitSeconds` | number | No | `null` for untimed quizzes |
+| `examTags` | string[] | No | Defaults to `[]` |
+| `subject` | string | No | Defaults to `null` |
+| `topic` | string | No | Defaults to `null` |
 | `questions` | array | Yes | At least 1 question required |
 | `questions[].text` | string | Yes | Question text |
 | `questions[].options` | string[] | Yes | Array of answer choices |
@@ -402,7 +411,10 @@ Update quiz metadata (title, description, time limit). Does not modify questions
 {
   "title": "Updated Title",
   "description": "New description",
-  "timeLimitSeconds": 90
+  "timeLimitSeconds": 90,
+  "examTags": ["UPCAT"],
+  "subject": "History",
+  "topic": "World History"
 }
 ```
 

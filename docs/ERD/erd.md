@@ -17,6 +17,11 @@ erDiagram
         text title "NOT NULL"
         text description "NOT NULL - default empty"
         integer time_limit_seconds "NULLABLE"
+        uuid created_by FK "NULLABLE"
+        enum visibility "NOT NULL - default public"
+        text[] exam_tags "NOT NULL - default empty"
+        text subject "NULLABLE"
+        text topic "NULLABLE"
     }
 
     questions {
