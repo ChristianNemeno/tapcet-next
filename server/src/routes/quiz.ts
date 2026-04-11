@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
-import { quizzes, questions, leaderboard, users } from "../db/schema.js";
-import { eq, count, sum, desc, asc, and, arrayContains, isNotNull } from "drizzle-orm";
+import { quizzes, questions, leaderboard, users, reviewQueue } from "../db/schema.js";
+import { eq, count, sum, desc, asc, and, arrayContains, isNotNull, sql } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -128,6 +128,37 @@ router.post("/quiz/:id/submit", optionalAuth, async (req, res, next) => {
     const score = results.filter((r) => r.correct).length;
     const total = qs.length;
     const percentage = total > 0 ? (score / total) * 100 : 0;
+
+    // Upsert missed questions into review queue (authenticated users only)
+    if (req.user?.userId) {
+      const wrongIds = results.filter((r) => !r.correct).map((r) => r.questionId);
+      if (wrongIds.length > 0) {
+        const now = new Date();
+        const nextReview = new Date(now);
+        nextReview.setDate(nextReview.getDate() + 1);
+        await db
+          .insert(reviewQueue)
+          .values(
+            wrongIds.map((questionId) => ({
+              userId: req.user!.userId,
+              questionId,
+              nextReviewAt: nextReview,
+              intervalDays: 1,
+              missCount: 1,
+              updatedAt: now,
+            }))
+          )
+          .onConflictDoUpdate({
+            target: [reviewQueue.userId, reviewQueue.questionId],
+            set: {
+              intervalDays: 1,
+              nextReviewAt: nextReview,
+              missCount: sql`${reviewQueue.missCount} + 1`,
+              updatedAt: now,
+            },
+          });
+      }
+    }
 
     const displayNickname =
       nickname?.trim().slice(0, 20) || "Anonymous";

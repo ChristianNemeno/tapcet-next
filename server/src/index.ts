@@ -9,6 +9,7 @@ import quizRouter from "./routes/quiz.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
 import userQuizRouter from "./routes/userQuiz.js";
+import reviewRouter from "./routes/review.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
   const shouldLog =
     req.path.startsWith("/api/auth") ||
     req.path.startsWith("/api/admin") ||
+    req.path.startsWith("/api/review-queue") ||
     (req.method === "POST" && /^\/api\/quiz\/[^/]+\/submit$/.test(req.path));
 
   if (!shouldLog) {
@@ -49,6 +51,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api", quizRouter);
 app.use("/api", userQuizRouter);
+app.use("/api", reviewRouter);
 
 app.use(
   (

@@ -8,6 +8,7 @@ import {
   timestamp,
   pgEnum,
   boolean,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "admin"]);
@@ -58,3 +59,18 @@ export const leaderboard = pgTable("leaderboard", {
   percentage: real("percentage").notNull(),
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });
+
+export const reviewQueue = pgTable(
+  "review_queue",
+  {
+    id:           uuid("id").primaryKey().defaultRandom(),
+    userId:       uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    questionId:   uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
+    nextReviewAt: timestamp("next_review_at").notNull(),
+    intervalDays: integer("interval_days").notNull().default(1),
+    missCount:    integer("miss_count").notNull().default(1),
+    createdAt:    timestamp("created_at").notNull().defaultNow(),
+    updatedAt:    timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("review_queue_user_question_idx").on(t.userId, t.questionId)]
+);

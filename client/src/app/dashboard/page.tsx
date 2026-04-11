@@ -3,9 +3,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { fetchDashboard, fetchMyQuizzes, fetchWeakness, deleteQuiz } from "@/lib/api";
+import { fetchDashboard, fetchMyQuizzes, fetchWeakness, fetchReviewStats, deleteQuiz } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { DashboardEntry, MyQuizSummary, WeaknessEntry } from "@/lib/types";
+import type { DashboardEntry, MyQuizSummary, WeaknessEntry, ReviewStats } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,13 +27,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type Section = "overview" | "attempts" | "my-quizzes" | "weakness";
+type Section = "overview" | "attempts" | "my-quizzes" | "weakness" | "review-queue";
 
 const NAV_ITEMS: { id: Section; label: string; symbol: string }[] = [
-  { id: "overview", label: "Overview", symbol: "~" },
-  { id: "attempts", label: "Attempts", symbol: "→" },
-  { id: "weakness", label: "Weaknesses", symbol: "!" },
-  { id: "my-quizzes", label: "My Quizzes", symbol: "+" },
+  { id: "overview",     label: "Overview",     symbol: "~" },
+  { id: "attempts",     label: "Attempts",      symbol: "→" },
+  { id: "weakness",     label: "Weaknesses",    symbol: "!" },
+  { id: "review-queue", label: "Review Queue",  symbol: "↺" },
+  { id: "my-quizzes",  label: "My Quizzes",    symbol: "+" },
 ];
 
 function getInitials(name: string | null): string {
@@ -440,6 +441,71 @@ function WeaknessSection({
   );
 }
 
+function ReviewQueueSection({
+  stats,
+  loading,
+}: {
+  stats: ReviewStats | null;
+  loading: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-1">
+          Spaced Repetition
+        </p>
+        <h2 className="font-mono font-bold text-xl tracking-tight">
+          Review Queue<span className="text-primary">.</span>
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        <StatCard label="due today"     value={stats?.dueToday ?? 0} loading={loading} />
+        <StatCard label="total in queue" value={stats?.total ?? 0}   loading={loading} />
+      </div>
+
+      {!loading && (stats?.dueToday ?? 0) === 0 ? (
+        <div className="rounded-xl border border-border bg-card px-6 py-8 text-center">
+          <p className="font-mono text-sm text-muted-foreground mb-4">
+            No questions due right now. Check back tomorrow.
+          </p>
+          <Link href="/">
+            <Button variant="outline" size="sm" className="font-mono text-xs">
+              Browse Quizzes
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border bg-card px-6 py-8 text-center">
+          {loading ? (
+            <Skeleton className="h-9 w-40 mx-auto" />
+          ) : (
+            <>
+              <p className="font-mono text-sm text-muted-foreground mb-4">
+                You have{" "}
+                <span className="font-semibold text-foreground">
+                  {stats!.dueToday}
+                </span>{" "}
+                question{stats!.dueToday !== 1 ? "s" : ""} due for review.
+              </p>
+              <Link href="/review">
+                <Button className="font-mono text-sm font-semibold">
+                  Start Review →
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+
+      <p className="font-mono text-xs text-muted-foreground mt-6">
+        Questions you get wrong in any quiz are added here. Correct answers extend the review
+        interval: 1 → 3 → 7 → 14 → 30 days.
+      </p>
+    </div>
+  );
+}
+
 function DashboardContent() {
   const { token, name, role } = useAuth();
   const router = useRouter();
@@ -449,9 +515,11 @@ function DashboardContent() {
   const [entries, setEntries] = useState<DashboardEntry[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<MyQuizSummary[]>([]);
   const [weakness, setWeakness] = useState<WeaknessEntry[]>([]);
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [loadingAttempts, setLoadingAttempts] = useState(true);
   const [loadingQuizzes, setLoadingQuizzes] = useState(true);
   const [loadingWeakness, setLoadingWeakness] = useState(true);
+  const [loadingReview, setLoadingReview] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -473,6 +541,11 @@ function DashboardContent() {
       .then(setWeakness)
       .catch(() => null)
       .finally(() => setLoadingWeakness(false));
+
+    fetchReviewStats(token)
+      .then(setReviewStats)
+      .catch(() => null)
+      .finally(() => setLoadingReview(false));
   }, [token, router]);
 
   if (!token) return null;
@@ -520,6 +593,10 @@ function DashboardContent() {
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => {
             const active = section === item.id;
+            const showDueBadge =
+              item.id === "review-queue" &&
+              !loadingReview &&
+              (reviewStats?.dueToday ?? 0) > 0;
             return (
               <button
                 key={item.id}
@@ -532,6 +609,11 @@ function DashboardContent() {
               >
                 <span className="text-base leading-none w-3 text-center">{item.symbol}</span>
                 {item.label}
+                {showDueBadge && (
+                  <Badge variant="default" className="ml-auto font-mono text-xs px-1.5 py-0 h-4">
+                    {reviewStats!.dueToday}
+                  </Badge>
+                )}
               </button>
             );
           })}
@@ -559,6 +641,9 @@ function DashboardContent() {
         )}
         {section === "weakness" && (
           <WeaknessSection entries={weakness} loading={loadingWeakness} />
+        )}
+        {section === "review-queue" && (
+          <ReviewQueueSection stats={reviewStats} loading={loadingReview} />
         )}
         {section === "my-quizzes" && (
           <MyQuizzesSection
