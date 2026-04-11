@@ -100,10 +100,10 @@ export default function ResultsPage() {
       </div>
 
       {/* Quick stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         {[
           { label: "Correct", value: result.score, color: "text-emerald-400" },
-          { label: "Wrong", value: result.total - result.score, color: "text-destructive" },
+          { label: "Wrong", value: result.results.filter((r) => !r.correct && r.selectedAnswer !== -1).length, color: "text-destructive" },
           { label: "Total", value: result.total, color: "text-foreground" },
         ].map((s) => (
           <div
@@ -115,6 +115,22 @@ export default function ResultsPage() {
           </div>
         ))}
       </div>
+
+      {/* Penalty banner — penalized scoring only */}
+      {result.scoringMode === "penalized" && result.penaltyPoints > 0 && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 mb-8">
+          <p className="font-mono text-xs text-amber-400 mb-1">
+            Penalized scoring (−{result.penaltyFraction} per wrong answer)
+          </p>
+          <p className="font-mono text-sm text-foreground">
+            {result.score} correct − {result.penaltyPoints.toFixed(2)} penalty ={" "}
+            <span className="font-bold">{(result.score - result.penaltyPoints).toFixed(2)} net score</span>
+          </p>
+        </div>
+      )}
+      {result.scoringMode === "penalized" && result.penaltyPoints === 0 && (
+        <div className="mb-8" />
+      )}
 
       {/* Question breakdown */}
       {quiz && (

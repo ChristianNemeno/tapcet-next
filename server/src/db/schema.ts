@@ -13,6 +13,7 @@ import {
 
 export const roleEnum = pgEnum("role", ["user", "admin"]);
 export const visibilityEnum = pgEnum("visibility", ["public", "draft"]);
+export const scoringModeEnum = pgEnum("scoring_mode", ["standard", "penalized"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -34,6 +35,16 @@ export const quizzes = pgTable("quizzes", {
   subject: text("subject"),
   topic: text("topic"),
   isOfficial: boolean("is_official").notNull().default(false),
+  scoringMode: scoringModeEnum("scoring_mode").notNull().default("standard"),
+  penaltyFraction: real("penalty_fraction").notNull().default(0.25),
+});
+
+export const sections = pgTable("sections", {
+  id:               uuid("id").primaryKey().defaultRandom(),
+  quizId:           uuid("quiz_id").notNull().references(() => quizzes.id, { onDelete: "cascade" }),
+  title:            text("title").notNull(),
+  timeLimitSeconds: integer("time_limit_seconds"),
+  orderIndex:       integer("order_index").notNull().default(0),
 });
 
 export const questions = pgTable("questions", {
@@ -41,6 +52,7 @@ export const questions = pgTable("questions", {
   quizId: uuid("quiz_id")
     .notNull()
     .references(() => quizzes.id, { onDelete: "cascade" }),
+  sectionId: uuid("section_id").references(() => sections.id, { onDelete: "set null" }),
   text: text("text").notNull(),
   options: jsonb("options").notNull().$type<string[]>(),
   answer: integer("answer").notNull(),
@@ -58,6 +70,7 @@ export const leaderboard = pgTable("leaderboard", {
   total: integer("total").notNull(),
   percentage: real("percentage").notNull(),
   completedAt: timestamp("completed_at").notNull().defaultNow(),
+  penaltyPoints: real("penalty_points").notNull().default(0),
 });
 
 export const collections = pgTable("collections", {

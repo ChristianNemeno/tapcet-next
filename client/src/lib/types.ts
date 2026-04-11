@@ -7,6 +7,8 @@ export interface QuizSummary {
   subject: string | null;
   topic: string | null;
   isOfficial: boolean;
+  scoringMode: "standard" | "penalized";
+  penaltyFraction: number;
   questionCount: number;
   creatorName: string | null;
 }
@@ -16,10 +18,20 @@ export interface QuizQuestion {
   text: string;
   options: string[];
   orderIndex: number;
+  sectionId: string | null;
+}
+
+export interface QuizSection {
+  id: string;
+  title: string;
+  timeLimitSeconds: number | null;
+  orderIndex: number;
+  questions: QuizQuestion[];
 }
 
 export interface QuizDetail extends Omit<QuizSummary, "questionCount"> {
   questions: QuizQuestion[];
+  sections: QuizSection[];
   visibility: "public" | "draft";
   createdBy: string | null;
 }
@@ -46,7 +58,14 @@ export interface QuizFormPayload {
   subject?: string | null;
   topic?: string | null;
   isOfficial?: boolean;
+  scoringMode?: "standard" | "penalized";
+  penaltyFraction?: number;
   questions: Array<{ text: string; options: string[]; answer: number }>;
+  sections?: Array<{
+    title: string;
+    timeLimitSeconds?: number | null;
+    questions: Array<{ text: string; options: string[]; answer: number }>;
+  }>;
 }
 
 export type AnswersMap = Record<string, number>;
@@ -65,6 +84,9 @@ export interface SubmitQuizResponse {
   results: QuizResultItem[];
   quizId: string;
   nickname: string;
+  scoringMode: "standard" | "penalized";
+  penaltyPoints: number;
+  penaltyFraction: number;
 }
 
 export interface LeaderboardEntry {

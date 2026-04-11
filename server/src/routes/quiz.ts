@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
-import { quizzes, questions, leaderboard, users, reviewQueue } from "../db/schema.js";
+import { quizzes, questions, leaderboard, users, reviewQueue, sections } from "../db/schema.js";
 import { eq, count, sum, desc, asc, and, arrayContains, isNotNull, sql } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 
@@ -54,6 +54,8 @@ router.get("/quiz/:id", async (req, res, next) => {
         subject: quizzes.subject,
         topic: quizzes.topic,
         isOfficial: quizzes.isOfficial,
+        scoringMode: quizzes.scoringMode,
+        penaltyFraction: quizzes.penaltyFraction,
         createdBy: quizzes.createdBy,
         visibility: quizzes.visibility,
         creatorName: users.name,
@@ -68,18 +70,35 @@ router.get("/quiz/:id", async (req, res, next) => {
       return;
     }
 
+    const secs = await db
+      .select({
+        id: sections.id,
+        title: sections.title,
+        timeLimitSeconds: sections.timeLimitSeconds,
+        orderIndex: sections.orderIndex,
+      })
+      .from(sections)
+      .where(eq(sections.quizId, quiz.id))
+      .orderBy(asc(sections.orderIndex));
+
     const qs = await db
       .select({
         id: questions.id,
         text: questions.text,
         options: questions.options,
         orderIndex: questions.orderIndex,
+        sectionId: questions.sectionId,
       })
       .from(questions)
       .where(eq(questions.quizId, quiz.id))
       .orderBy(asc(questions.orderIndex));
 
-    res.json({ ...quiz, questions: qs });
+    const sectionsWithQuestions = secs.map((s) => ({
+      ...s,
+      questions: qs.filter((q) => q.sectionId === s.id),
+    }));
+
+    res.json({ ...quiz, sections: sectionsWithQuestions, questions: qs });
   } catch (err) {
     next(err);
   }
@@ -125,9 +144,15 @@ router.post("/quiz/:id/submit", optionalAuth, async (req, res, next) => {
       };
     });
 
-    const score = results.filter((r) => r.correct).length;
+    const correctCount = results.filter((r) => r.correct).length;
+    const wrongCount = results.filter((r) => !r.correct && r.selectedAnswer !== -1).length;
+    let penaltyPoints = 0;
+    if (quiz.scoringMode === "penalized") {
+      penaltyPoints = wrongCount * quiz.penaltyFraction;
+    }
+    const score = correctCount;
     const total = qs.length;
-    const percentage = total > 0 ? (score / total) * 100 : 0;
+    const percentage = total > 0 ? ((score - penaltyPoints) / total) * 100 : 0;
 
     // Upsert missed questions into review queue (authenticated users only)
     if (req.user?.userId) {
@@ -170,9 +195,15 @@ router.post("/quiz/:id/submit", optionalAuth, async (req, res, next) => {
       score,
       total,
       percentage,
+      penaltyPoints,
     });
 
-    res.json({ score, total, percentage, results, quizId: quiz.id, nickname: displayNickname });
+    res.json({
+      score, total, percentage, results, quizId: quiz.id, nickname: displayNickname,
+      scoringMode: quiz.scoringMode,
+      penaltyPoints,
+      penaltyFraction: quiz.penaltyFraction,
+    });
   } catch (err) {
     next(err);
   }
