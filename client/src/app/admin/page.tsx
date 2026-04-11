@@ -40,6 +40,7 @@ export default function AdminPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [timeLimit, setTimeLimit] = useState("");
+  const [isOfficial, setIsOfficial] = useState(false);
   const [questions, setQuestions] = useState<QuestionDraft[]>([emptyQuestion()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export default function AdminPage() {
           title,
           description,
           timeLimitSeconds: timeLimit ? parseInt(timeLimit) : undefined,
+          isOfficial,
           questions: questions.map((q) => ({
             text: q.text,
             options: q.options,
@@ -101,6 +103,7 @@ export default function AdminPage() {
       setTitle("");
       setDescription("");
       setTimeLimit("");
+      setIsOfficial(false);
       setQuestions([emptyQuestion()]);
       const updated = await fetchQuizzes();
       setQuizzes(updated);
@@ -244,6 +247,23 @@ export default function AdminPage() {
             onChange={(e) => setDescription(e.target.value)}
             className="font-mono text-sm"
           />
+        </div>
+
+        <div className="border border-amber-500/20 bg-amber-500/5 rounded-sm px-4 py-3">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isOfficial}
+              onChange={(e) => setIsOfficial(e.target.checked)}
+              className="accent-primary size-4"
+            />
+            <div>
+              <p className="font-mono text-sm font-semibold text-amber-400">Mark as Official</p>
+              <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                Official quizzes are shown first in listings with a badge.
+              </p>
+            </div>
+          </label>
         </div>
 
         {/* Questions */}

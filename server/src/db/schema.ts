@@ -7,6 +7,7 @@ import {
   real,
   timestamp,
   pgEnum,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "admin"]);
@@ -31,6 +32,7 @@ export const quizzes = pgTable("quizzes", {
   examTags: text("exam_tags").array().notNull().default([]),
   subject: text("subject"),
   topic: text("topic"),
+  isOfficial: boolean("is_official").notNull().default(false),
 });
 
 export const questions = pgTable("questions", {

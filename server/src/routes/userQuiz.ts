@@ -17,7 +17,7 @@ function canMutate(
 // POST /api/quiz — authenticated user creates a quiz with questions
 router.post("/quiz", authenticateToken, async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, questions: qs } =
+    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, isOfficial, questions: qs } =
       req.body as {
         title?: string;
         description?: string;
@@ -26,6 +26,7 @@ router.post("/quiz", authenticateToken, async (req, res, next) => {
         examTags?: string[];
         subject?: string | null;
         topic?: string | null;
+        isOfficial?: boolean;
         questions?: Array<{ text: string; options: string[]; answer: number }>;
       };
 
@@ -45,6 +46,7 @@ router.post("/quiz", authenticateToken, async (req, res, next) => {
         examTags: examTags ?? [],
         subject: subject ?? null,
         topic: topic ?? null,
+        isOfficial: req.user!.role === "admin" ? (isOfficial ?? false) : false,
       })
       .returning();
 
@@ -83,7 +85,7 @@ router.put("/quiz/:id", authenticateToken, async (req, res, next) => {
       return;
     }
 
-    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, questions: qs } =
+    const { title, description, timeLimitSeconds, visibility, examTags, subject, topic, isOfficial, questions: qs } =
       req.body as {
         title?: string;
         description?: string;
@@ -92,6 +94,7 @@ router.put("/quiz/:id", authenticateToken, async (req, res, next) => {
         examTags?: string[];
         subject?: string | null;
         topic?: string | null;
+        isOfficial?: boolean;
         questions?: Array<{ text: string; options: string[]; answer: number }>;
       };
 
@@ -105,6 +108,7 @@ router.put("/quiz/:id", authenticateToken, async (req, res, next) => {
         ...(examTags !== undefined && { examTags }),
         ...(subject !== undefined && { subject }),
         ...(topic !== undefined && { topic }),
+        ...(isOfficial !== undefined && req.user!.role === "admin" && { isOfficial }),
       })
       .where(eq(quizzes.id, req.params.id))
       .returning();

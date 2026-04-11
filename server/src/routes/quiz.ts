@@ -9,10 +9,11 @@ const router = Router();
 // GET /api/quizzes — list public quizzes with question count and creator name
 router.get("/quizzes", async (req, res, next) => {
   try {
-    const { exam, subject } = req.query as { exam?: string; subject?: string };
+    const { exam, subject, official } = req.query as { exam?: string; subject?: string; official?: string };
     const conditions = [eq(quizzes.visibility, "public")];
     if (exam) conditions.push(arrayContains(quizzes.examTags, [exam]));
     if (subject) conditions.push(eq(quizzes.subject, subject));
+    if (official === "true") conditions.push(eq(quizzes.isOfficial, true));
 
     const rows = await db
       .select({
@@ -23,6 +24,7 @@ router.get("/quizzes", async (req, res, next) => {
         examTags: quizzes.examTags,
         subject: quizzes.subject,
         topic: quizzes.topic,
+        isOfficial: quizzes.isOfficial,
         questionCount: count(questions.id),
         creatorName: users.name,
       })
@@ -31,7 +33,7 @@ router.get("/quizzes", async (req, res, next) => {
       .leftJoin(users, eq(users.id, quizzes.createdBy))
       .where(and(...conditions))
       .groupBy(quizzes.id, quizzes.examTags, quizzes.subject, quizzes.topic, users.name)
-      .orderBy(asc(quizzes.title));
+      .orderBy(desc(quizzes.isOfficial), asc(quizzes.title));
 
     res.json(rows);
   } catch (err) {
@@ -51,6 +53,7 @@ router.get("/quiz/:id", async (req, res, next) => {
         examTags: quizzes.examTags,
         subject: quizzes.subject,
         topic: quizzes.topic,
+        isOfficial: quizzes.isOfficial,
         createdBy: quizzes.createdBy,
         visibility: quizzes.visibility,
         creatorName: users.name,

@@ -6,6 +6,7 @@ export interface QuizSummary {
   examTags: string[];
   subject: string | null;
   topic: string | null;
+  isOfficial: boolean;
   questionCount: number;
   creatorName: string | null;
 }
@@ -31,6 +32,7 @@ export interface MyQuizSummary {
   examTags: string[];
   subject: string | null;
   topic: string | null;
+  isOfficial: boolean;
   questionCount: number;
   visibility: "public" | "draft";
 }
@@ -43,6 +45,7 @@ export interface QuizFormPayload {
   examTags?: string[];
   subject?: string | null;
   topic?: string | null;
+  isOfficial?: boolean;
   questions: Array<{ text: string; options: string[]; answer: number }>;
 }
 

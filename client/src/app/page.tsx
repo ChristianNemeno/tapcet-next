@@ -295,15 +295,25 @@ function QuizCard({ quiz, index }: { quiz: QuizSummary; index: number }) {
   return (
     <Link href={`/quiz/${quiz.id}`} className="group block h-full">
       <div className="quiz-card h-full rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
-        {/* Subject + index */}
+        {/* Subject + official badge + index */}
         <div className="flex items-start justify-between gap-2">
-          {quiz.subject ? (
-            <SubjectBadge subject={quiz.subject} />
-          ) : (
-            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/60">
-              General
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {quiz.subject ? (
+              <SubjectBadge subject={quiz.subject} />
+            ) : (
+              <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/60">
+                General
+              </span>
+            )}
+            {quiz.isOfficial && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                <svg viewBox="0 0 16 16" fill="currentColor" className="size-2.5 shrink-0">
+                  <path d="M8 1L9.8 5.6L15 6.1L11.2 9.4L12.4 14.5L8 11.8L3.6 14.5L4.8 9.4L1 6.1L6.2 5.6Z" />
+                </svg>
+                Official
+              </span>
+            )}
+          </div>
           <span className="font-mono text-xs text-muted-foreground/40 tabular-nums shrink-0">
             {String(index + 1).padStart(2, "0")}
           </span>
@@ -347,7 +357,7 @@ function QuizCard({ quiz, index }: { quiz: QuizSummary; index: number }) {
             </>
           )}
           <span className="font-mono text-xs text-muted-foreground ml-auto truncate">
-            {quiz.creatorName ? `by ${quiz.creatorName}` : "Official"}
+            {quiz.isOfficial ? "Official" : quiz.creatorName ? `by ${quiz.creatorName}` : "Community"}
           </span>
         </div>
       </div>
@@ -379,19 +389,21 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [examFilter, setExamFilter] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
+  const [officialOnly, setOfficialOnly] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     fetchQuizzes({
       exam: examFilter || undefined,
       subject: subjectFilter || undefined,
+      official: officialOnly || undefined,
     })
       .then(setQuizzes)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [examFilter, subjectFilter]);
+  }, [examFilter, subjectFilter, officialOnly]);
 
-  const filtersActive = examFilter !== "" || subjectFilter !== "";
+  const filtersActive = examFilter !== "" || subjectFilter !== "" || officialOnly;
 
   return (
     <div>
@@ -484,6 +496,17 @@ export default function HomePage() {
                 {tag}
               </button>
             ))}
+            <button
+              onClick={() => setOfficialOnly((prev) => !prev)}
+              className={`filter-pill flex items-center gap-1.5 ${
+                officialOnly ? "filter-pill-active" : "filter-pill-inactive"
+              }`}
+            >
+              <svg viewBox="0 0 16 16" fill="currentColor" className="size-3 shrink-0">
+                <path d="M8 1L9.8 5.6L15 6.1L11.2 9.4L12.4 14.5L8 11.8L3.6 14.5L4.8 9.4L1 6.1L6.2 5.6Z" />
+              </svg>
+              Official
+            </button>
           </div>
         </div>
 
@@ -499,6 +522,7 @@ export default function HomePage() {
               onClick={() => {
                 setExamFilter("");
                 setSubjectFilter("");
+                setOfficialOnly(false);
               }}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -536,6 +560,7 @@ export default function HomePage() {
                 onClick={() => {
                   setExamFilter("");
                   setSubjectFilter("");
+                  setOfficialOnly(false);
                 }}
                 className="mt-3 text-sm text-primary hover:underline underline-offset-4"
               >

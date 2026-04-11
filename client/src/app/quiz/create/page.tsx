@@ -22,7 +22,7 @@ const emptyQuestion = (): QuestionDraft => ({
 });
 
 export default function CreateQuizPage() {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -32,6 +32,7 @@ export default function CreateQuizPage() {
   const [examTags, setExamTags] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
+  const [isOfficial, setIsOfficial] = useState(false);
   const [questions, setQuestions] = useState<QuestionDraft[]>([emptyQuestion()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export default function CreateQuizPage() {
           examTags,
           subject: subject || null,
           topic: topic || null,
+          isOfficial: role === "admin" ? isOfficial : undefined,
           questions: questions.map((q) => ({
             text: q.text,
             options: q.options,
@@ -217,6 +219,26 @@ export default function CreateQuizPage() {
             />
           </div>
         </div>
+
+        {/* Official flag — admin only */}
+        {role === "admin" && (
+          <div className="border border-amber-500/20 bg-amber-500/5 rounded-sm px-4 py-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isOfficial}
+                onChange={(e) => setIsOfficial(e.target.checked)}
+                className="accent-primary size-4"
+              />
+              <div>
+                <p className="font-mono text-sm font-semibold text-amber-400">Mark as Official</p>
+                <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                  Official quizzes are admin-curated, shown first in listings, and marked with a badge.
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
 
         {/* Questions */}
         <div className="space-y-6">

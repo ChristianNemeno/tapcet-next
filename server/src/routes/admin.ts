@@ -10,13 +10,14 @@ router.use(authenticateToken, requireAdmin);
 // POST /api/admin/quizzes — create quiz with questions
 router.post("/quizzes", async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds, examTags, subject, topic, questions: qs } = req.body as {
+    const { title, description, timeLimitSeconds, examTags, subject, topic, isOfficial, questions: qs } = req.body as {
       title?: string;
       description?: string;
       timeLimitSeconds?: number;
       examTags?: string[];
       subject?: string | null;
       topic?: string | null;
+      isOfficial?: boolean;
       questions?: Array<{ text: string; options: string[]; answer: number }>;
     };
 
@@ -34,6 +35,7 @@ router.post("/quizzes", async (req, res, next) => {
         examTags: examTags ?? [],
         subject: subject ?? null,
         topic: topic ?? null,
+        isOfficial: isOfficial ?? false,
       })
       .returning();
 
@@ -56,13 +58,14 @@ router.post("/quizzes", async (req, res, next) => {
 // PUT /api/admin/quizzes/:id — update quiz metadata
 router.put("/quizzes/:id", async (req, res, next) => {
   try {
-    const { title, description, timeLimitSeconds, examTags, subject, topic } = req.body as {
+    const { title, description, timeLimitSeconds, examTags, subject, topic, isOfficial } = req.body as {
       title?: string;
       description?: string;
       timeLimitSeconds?: number | null;
       examTags?: string[];
       subject?: string | null;
       topic?: string | null;
+      isOfficial?: boolean;
     };
 
     const [updated] = await db
@@ -74,6 +77,7 @@ router.put("/quizzes/:id", async (req, res, next) => {
         ...(examTags !== undefined && { examTags }),
         ...(subject !== undefined && { subject }),
         ...(topic !== undefined && { topic }),
+        ...(isOfficial !== undefined && { isOfficial }),
       })
       .where(eq(quizzes.id, req.params.id))
       .returning();

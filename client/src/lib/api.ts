@@ -24,10 +24,11 @@ function authHeader(token?: string | null): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function fetchQuizzes(params?: { exam?: string; subject?: string }): Promise<QuizSummary[]> {
+export async function fetchQuizzes(params?: { exam?: string; subject?: string; official?: boolean }): Promise<QuizSummary[]> {
   const url = new URL(`${BASE}/quizzes`, window.location.origin);
   if (params?.exam) url.searchParams.set("exam", params.exam);
   if (params?.subject) url.searchParams.set("subject", params.subject);
+  if (params?.official) url.searchParams.set("official", "true");
   return parseResponse(await fetch(url.toString()));
 }
 
