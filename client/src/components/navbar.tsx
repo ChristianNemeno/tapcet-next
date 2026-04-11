@@ -22,6 +22,11 @@ export function Navbar() {
 
         {/* Nav */}
         <nav className="flex items-center gap-1">
+          <Link href="/collections">
+            <Button variant="ghost" size="sm" className="text-xs font-medium hidden sm:inline-flex">
+              Collections
+            </Button>
+          </Link>
           {name ? (
             <>
               <Link href="/quiz/create">

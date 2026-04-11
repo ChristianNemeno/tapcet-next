@@ -10,6 +10,7 @@ import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
 import userQuizRouter from "./routes/userQuiz.js";
 import reviewRouter from "./routes/review.js";
+import collectionRouter from "./routes/collection.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -52,6 +53,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api", quizRouter);
 app.use("/api", userQuizRouter);
 app.use("/api", reviewRouter);
+app.use("/api", collectionRouter);
 
 app.use(
   (

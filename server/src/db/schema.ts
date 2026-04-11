@@ -60,6 +60,39 @@ export const leaderboard = pgTable("leaderboard", {
   completedAt: timestamp("completed_at").notNull().defaultNow(),
 });
 
+export const collections = pgTable("collections", {
+  id:          uuid("id").primaryKey().defaultRandom(),
+  title:       text("title").notNull(),
+  description: text("description").notNull().default(""),
+  examTag:     text("exam_tag"),
+  visibility:  visibilityEnum("visibility").notNull().default("public"),
+  isOfficial:  boolean("is_official").notNull().default(false),
+  createdBy:   uuid("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt:   timestamp("created_at").notNull().defaultNow(),
+});
+
+export const collectionQuizzes = pgTable(
+  "collection_quizzes",
+  {
+    id:           uuid("id").primaryKey().defaultRandom(),
+    collectionId: uuid("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+    quizId:       uuid("quiz_id").notNull().references(() => quizzes.id, { onDelete: "cascade" }),
+    orderIndex:   integer("order_index").notNull().default(0),
+  },
+  (t) => [uniqueIndex("collection_quizzes_unique_idx").on(t.collectionId, t.quizId)]
+);
+
+export const collectionFollows = pgTable(
+  "collection_follows",
+  {
+    id:           uuid("id").primaryKey().defaultRandom(),
+    userId:       uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    collectionId: uuid("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+    createdAt:    timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("collection_follows_unique_idx").on(t.userId, t.collectionId)]
+);
+
 export const reviewQueue = pgTable(
   "review_queue",
   {
