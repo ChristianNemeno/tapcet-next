@@ -5,6 +5,7 @@ import type {
   SubmitQuizResponse,
   LeaderboardEntry,
   DashboardEntry,
+  WeaknessEntry,
   AuthResponse,
   MyQuizSummary,
   QuizFormPayload,
@@ -58,6 +59,12 @@ export async function fetchLeaderboard(id: string): Promise<LeaderboardEntry[]> 
 export async function fetchDashboard(token: string): Promise<DashboardEntry[]> {
   return parseResponse(
     await fetch(`${BASE}/dashboard`, { headers: authHeader(token) })
+  );
+}
+
+export async function fetchWeakness(token: string): Promise<WeaknessEntry[]> {
+  return parseResponse(
+    await fetch(`${BASE}/dashboard/weakness`, { headers: authHeader(token) })
   );
 }
 

@@ -86,6 +86,14 @@ export interface DashboardEntry {
   completedAt: string;
 }
 
+export interface WeaknessEntry {
+  subject: string;
+  totalCorrect: number;
+  totalQuestions: number;
+  attempts: number;
+  percentage: number;
+}
+
 export interface AuthResponse {
   token: string;
   name: string;

@@ -3,9 +3,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { fetchDashboard, fetchMyQuizzes, deleteQuiz } from "@/lib/api";
+import { fetchDashboard, fetchMyQuizzes, fetchWeakness, deleteQuiz } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { DashboardEntry, MyQuizSummary } from "@/lib/types";
+import type { DashboardEntry, MyQuizSummary, WeaknessEntry } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,11 +27,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type Section = "overview" | "attempts" | "my-quizzes";
+type Section = "overview" | "attempts" | "my-quizzes" | "weakness";
 
 const NAV_ITEMS: { id: Section; label: string; symbol: string }[] = [
   { id: "overview", label: "Overview", symbol: "~" },
   { id: "attempts", label: "Attempts", symbol: "→" },
+  { id: "weakness", label: "Weaknesses", symbol: "!" },
   { id: "my-quizzes", label: "My Quizzes", symbol: "+" },
 ];
 
@@ -324,6 +325,121 @@ function MyQuizzesSection({
   );
 }
 
+const SUBJECT_COLORS: Record<string, string> = {
+  "Mathematics": "bg-blue-500",
+  "Science": "bg-green-500",
+  "English": "bg-purple-500",
+  "Filipino": "bg-yellow-500",
+  "Abstract Reasoning": "bg-orange-500",
+  "Mechanical-Technical": "bg-red-500",
+  "General Information": "bg-teal-500",
+};
+
+function WeaknessBar({
+  entry,
+  loading,
+  rank,
+}: {
+  entry?: WeaknessEntry;
+  loading: boolean;
+  rank?: number;
+}) {
+  if (loading) {
+    return (
+      <div className="py-4 border-b border-border last:border-0">
+        <div className="flex items-center justify-between mb-2">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <Skeleton className="h-1.5 w-full rounded-full" />
+      </div>
+    );
+  }
+  if (!entry) return null;
+
+  const pct = Math.round(entry.percentage);
+  const barColor = SUBJECT_COLORS[entry.subject] ?? "bg-primary";
+  const textColor =
+    pct < 40 ? "text-destructive" : pct < 65 ? "text-yellow-600 dark:text-yellow-400" : "text-primary";
+
+  return (
+    <div className="py-4 border-b border-border last:border-0">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          {rank !== undefined && (
+            <span className="font-mono text-xs text-muted-foreground w-4 tabular-nums">
+              {rank}.
+            </span>
+          )}
+          <span className="font-mono text-sm tracking-tight">{entry.subject}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
+            {entry.totalCorrect}/{entry.totalQuestions} · {entry.attempts} attempt{entry.attempts !== 1 ? "s" : ""}
+          </span>
+          <span className={`font-mono text-sm font-semibold tabular-nums ${textColor}`}>
+            {pct}%
+          </span>
+        </div>
+      </div>
+      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function WeaknessSection({
+  entries,
+  loading,
+}: {
+  entries: WeaknessEntry[];
+  loading: boolean;
+}) {
+  return (
+    <div>
+      <div className="mb-8">
+        <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase mb-1">
+          Analysis
+        </p>
+        <h2 className="font-mono font-bold text-xl tracking-tight">
+          Weak subjects<span className="text-primary">.</span>
+        </h2>
+      </div>
+
+      {!loading && entries.length === 0 ? (
+        <div className="py-12 text-center">
+          <p className="font-mono text-sm text-muted-foreground">
+            No subject data yet.{" "}
+            <Link href="/" className="text-primary hover:underline underline-offset-4">
+              Take a tagged quiz
+            </Link>{" "}
+            to see your weak areas.
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="font-mono text-xs text-muted-foreground mb-6">
+            Sorted by accuracy — weakest subjects first.
+          </p>
+          <div>
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <WeaknessBar key={i} loading={true} />
+                ))
+              : entries.map((entry, i) => (
+                  <WeaknessBar key={entry.subject} entry={entry} loading={false} rank={i + 1} />
+                ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function DashboardContent() {
   const { token, name, role } = useAuth();
   const router = useRouter();
@@ -332,8 +448,10 @@ function DashboardContent() {
 
   const [entries, setEntries] = useState<DashboardEntry[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<MyQuizSummary[]>([]);
+  const [weakness, setWeakness] = useState<WeaknessEntry[]>([]);
   const [loadingAttempts, setLoadingAttempts] = useState(true);
   const [loadingQuizzes, setLoadingQuizzes] = useState(true);
+  const [loadingWeakness, setLoadingWeakness] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -350,6 +468,11 @@ function DashboardContent() {
       .then(setMyQuizzes)
       .catch(() => null)
       .finally(() => setLoadingQuizzes(false));
+
+    fetchWeakness(token)
+      .then(setWeakness)
+      .catch(() => null)
+      .finally(() => setLoadingWeakness(false));
   }, [token, router]);
 
   if (!token) return null;
@@ -433,6 +556,9 @@ function DashboardContent() {
         )}
         {section === "attempts" && (
           <AttemptsSection entries={entries} loading={loadingAttempts} />
+        )}
+        {section === "weakness" && (
+          <WeaknessSection entries={weakness} loading={loadingWeakness} />
         )}
         {section === "my-quizzes" && (
           <MyQuizzesSection

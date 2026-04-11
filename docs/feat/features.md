@@ -1,6 +1,6 @@
 # Tapcet — Current Features
 
-> Last updated: 2026-04-09
+> Last updated: 2026-04-11
 
 ---
 
@@ -62,6 +62,7 @@
 - Sidebar navigation to toggle between sections
 - **Overview section** — personalized greeting and high-level summary
 - **My Attempts section** — quiz attempt history with scores, percentages, and dates
+- **Weaknesses section** — per-subject accuracy aggregated across all attempts, sorted weakest first, with color-coded progress bars
 - **My Quizzes section** — quizzes created by user with visibility status
 - Quick links to leaderboards from attempt history
 - Empty states for attempts and quizzes
@@ -107,6 +108,7 @@
 | POST | `/api/quiz/:id/submit` | Submit answers and get results |
 | GET | `/api/quiz/:id/leaderboard` | Get top 10 leaderboard |
 | GET | `/api/dashboard` | Get user's attempt history (auth required) |
+| GET | `/api/dashboard/weakness` | Get per-subject accuracy breakdown (auth required) |
 | POST | `/api/quiz` | Create quiz (auth required) |
 | PUT | `/api/quiz/:id` | Update quiz (creator or admin) |
 | DELETE | `/api/quiz/:id` | Delete quiz (creator or admin) |
@@ -147,7 +149,7 @@
 ## Not Yet Implemented
 
 - Recommended quizzes based on past attempts
-- Weak-topic surfacing from incorrect answers
+- Topic-level weakness breakdown (currently subject-level only; needs per-question attempt storage)
 - Review queues for missed questions
 - Personalized study suggestions
 - Adaptive learning features

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
 import { quizzes, questions, leaderboard, users } from "../db/schema.js";
-import { eq, count, desc, asc, and, arrayContains } from "drizzle-orm";
+import { eq, count, sum, desc, asc, and, arrayContains, isNotNull } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -193,6 +193,48 @@ router.get("/dashboard", authenticateToken, async (req, res, next) => {
       .orderBy(desc(leaderboard.completedAt));
 
     res.json(entries);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/dashboard/weakness — per-subject accuracy aggregated from attempts (auth required)
+router.get("/dashboard/weakness", authenticateToken, async (req, res, next) => {
+  try {
+    const rows = await db
+      .select({
+        subject: quizzes.subject,
+        totalCorrect: sum(leaderboard.score),
+        totalQuestions: sum(leaderboard.total),
+        attempts: count(leaderboard.id),
+      })
+      .from(leaderboard)
+      .innerJoin(quizzes, eq(quizzes.id, leaderboard.quizId))
+      .where(
+        and(
+          eq(leaderboard.userId, req.user!.userId),
+          isNotNull(quizzes.subject)
+        )
+      )
+      .groupBy(quizzes.subject);
+
+    const result = rows
+      .filter((r) => r.subject !== null)
+      .map((r) => {
+        const correct = parseInt(r.totalCorrect ?? "0", 10);
+        const total = parseInt(r.totalQuestions ?? "0", 10);
+        const percentage = total > 0 ? (correct / total) * 100 : 0;
+        return {
+          subject: r.subject as string,
+          totalCorrect: correct,
+          totalQuestions: total,
+          attempts: r.attempts,
+          percentage,
+        };
+      })
+      .sort((a, b) => a.percentage - b.percentage);
+
+    res.json(result);
   } catch (err) {
     next(err);
   }
