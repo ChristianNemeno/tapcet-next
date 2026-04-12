@@ -14,6 +14,21 @@ All endpoints accept and return JSON. Authenticated endpoints require an `Author
   - [GET /api/quiz/:id](#get-apiquizid)
   - [POST /api/quiz/:id/submit](#post-apiquizidsubmit)
   - [GET /api/quiz/:id/leaderboard](#get-apiquizidleaderboard)
+- [User Quiz Management](#user-quiz-management)
+  - [POST /api/quiz](#post-apiquiz)
+  - [PUT /api/quiz/:id](#put-apiquizid)
+  - [DELETE /api/quiz/:id](#delete-apiquizid)
+  - [GET /api/my-quizzes](#get-apimy-quizzes)
+- [Collections](#collections)
+  - [GET /api/collections](#get-apicollections)
+  - [GET /api/collection/:id](#get-apicollectionid)
+  - [POST /api/collection](#post-apicollection)
+  - [PUT /api/collection/:id](#put-apicollectionid)
+  - [DELETE /api/collection/:id](#delete-apicollectionid)
+  - [GET /api/my-collections](#get-apimy-collections)
+  - [POST /api/collection/:id/follow](#post-apicollectionidfollow)
+  - [POST /api/collection/:id/quizzes/:quizId](#post-apicollectionidquizzesquizid)
+  - [DELETE /api/collection/:id/quizzes/:quizId](#delete-apicollectionidquizzesquizid)
 - [Dashboard](#dashboard)
   - [GET /api/dashboard](#get-apidashboard)
 - [Admin](#admin)
@@ -157,12 +172,32 @@ Get a single quiz with its questions. **The `answer` field is intentionally omit
   "subject": "General Knowledge",
   "topic": "Philippine History",
   "creatorName": "Alice",
+  "scoringMode": "standard",
+  "penaltyFraction": 0.25,
+  "sections": [
+    {
+      "id": "sec-uuid-...",
+      "title": "Part 1",
+      "timeLimitSeconds": 30,
+      "orderIndex": 0,
+      "questions": [
+        {
+          "id": "q1-uuid-...",
+          "text": "What is the capital of France?",
+          "options": ["Berlin", "Madrid", "Paris", "Rome"],
+          "orderIndex": 0,
+          "sectionId": "sec-uuid-..."
+        }
+      ]
+    }
+  ],
   "questions": [
     {
       "id": "q1-uuid-...",
       "text": "What is the capital of France?",
       "options": ["Berlin", "Madrid", "Paris", "Rome"],
-      "orderIndex": 0
+      "orderIndex": 0,
+      "sectionId": "sec-uuid-..."
     }
   ]
 }
@@ -208,6 +243,9 @@ Submit answers for grading. Works for both anonymous and authenticated users.
   "percentage": 83.33,
   "quizId": "a1b2c3d4-...",
   "nickname": "Alice",
+  "scoringMode": "standard",
+  "penaltyPoints": 0,
+  "penaltyFraction": 0.25,
   "results": [
     {
       "questionId": "q1-uuid-...",
@@ -275,7 +313,7 @@ Create a new quiz with questions.
 
 ### PUT `/api/quiz/:id`
 
-Update a quiz and its questions. Replaces existing questions wholesale.
+Update a quiz and its questions. Replaces existing questions. Accepts `scoringMode`, `penaltyFraction`, and an optional `sections` array where questions can be scoped per section.
 
 **Auth:** Required (must be quiz creator or admin)
 
@@ -300,6 +338,83 @@ List all quizzes created by the authenticated user.
 **Auth:** Required
 
 **Response** `200 OK`: Returns a list of quizzes similar to `GET /api/quizzes` but includes drafts.
+
+---
+
+## Collections
+
+### GET `/api/collections`
+
+List all public collections. Returns collection summaries.
+
+**Auth:** None
+**Query Params:** `?exam=TAG`, `?official=true`
+
+---
+
+### GET `/api/collection/:id`
+
+Get a single collection including its list of quizzes in order. Optional authentication returns `isFollowing` status.
+
+**Auth:** Optional
+
+---
+
+### POST `/api/collection`
+
+Create a new collection.
+
+**Auth:** Required
+**Request Body:** `title` (required), `description`, `examTag`, `visibility`, `isOfficial` (admin only)
+
+---
+
+### PUT `/api/collection/:id`
+
+Update collection metadata.
+
+**Auth:** Required (owner or admin)
+
+---
+
+### DELETE `/api/collection/:id`
+
+Delete a collection. Does not naturally delete its associated quizzes.
+
+**Auth:** Required (owner or admin)
+
+---
+
+### GET `/api/my-collections`
+
+List all collections created by the authenticated user, including drafts.
+
+**Auth:** Required
+
+---
+
+### POST `/api/collection/:id/follow`
+
+Toggle following a collection.
+
+**Auth:** Required
+**Response:** `{ "following": boolean, "followerCount": number }`
+
+---
+
+### POST `/api/collection/:id/quizzes/:quizId`
+
+Add a quiz to a collection. Idempotent.
+
+**Auth:** Required (owner or admin)
+
+---
+
+### DELETE `/api/collection/:id/quizzes/:quizId`
+
+Remove a quiz from a collection.
+
+**Auth:** Required (owner or admin)
 
 ---
 

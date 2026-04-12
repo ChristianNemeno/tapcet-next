@@ -172,13 +172,9 @@ Rule-based, not ML. A simple scheduler that allocates daily questions per topic 
 
 ---
 
-### Filipino Language Support
-UPCAT tests Filipino language proficiency and reading comprehension. The platform cannot fully serve UPCAT takers without Filipino-language questions.
 
-Infrastructure decisions needed:
-- Do questions support a `language` field (en / fil)?
-- Does the UI switch reading direction or font for Filipino text?
-- Are answer choices also in Filipino?
+
+
 
 **Schema impact:** `language` field on `questions`. UI needs to handle bilingual content gracefully.
 

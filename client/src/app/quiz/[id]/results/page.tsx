@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchQuiz } from "@/lib/api";
-import type { SubmitQuizResponse, QuizDetail } from "@/lib/types";
+import { fetchQuiz, fetchQuizRating, rateQuiz } from "@/lib/api";
+import type { SubmitQuizResponse, QuizDetail, QuizRating } from "@/lib/types";
+import { MOCK_EXAM_CUTOFFS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { StarRating } from "@/components/StarRating";
+import { ReportModal } from "@/components/ReportModal";
+import { useAuth } from "@/lib/auth-context";
 
 function ScoreRing({ pct }: { pct: number }) {
   const r = 52;
@@ -47,6 +51,7 @@ function ScoreRing({ pct }: { pct: number }) {
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { token } = useAuth();
 
   const [result] = useState<SubmitQuizResponse | null>(() => {
     if (typeof window === "undefined") return null;
@@ -60,6 +65,8 @@ export default function ResultsPage() {
     }
   });
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
+  const [quizRating, setQuizRating] = useState<QuizRating | null>(null);
+  const [reportTarget, setReportTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (!result) {
@@ -67,7 +74,8 @@ export default function ResultsPage() {
       return;
     }
     fetchQuiz(id).then(setQuiz).catch(() => null);
-  }, [id, result, router]);
+    fetchQuizRating(id, token).then(setQuizRating).catch(() => null);
+  }, [id, result, router, token]);
 
   if (!result) return null;
 
@@ -80,6 +88,36 @@ export default function ResultsPage() {
       : pct >= 60
       ? "text-primary"
       : "text-destructive";
+
+  async function handleRate(rating: number) {
+    if (!token) return;
+    try {
+      const updated = await rateQuiz(id, rating, token);
+      setQuizRating(updated);
+    } catch {
+      // silent fail
+    }
+  }
+
+  // Mock exam: group results by section
+  const isMockExam = quiz?.quizType === "mock_exam";
+  const sectionBreakdown = isMockExam && quiz && quiz.sections.length > 0
+    ? quiz.sections.map((sec) => {
+        const sectionQIds = new Set(sec.questions.map((q) => q.id));
+        const sectionResults = result.results.filter((r) => sectionQIds.has(r.questionId));
+        const correct = sectionResults.filter((r) => r.correct).length;
+        const total = sectionResults.length;
+        const pctSec = total > 0 ? Math.round((correct / total) * 100) : 0;
+        return { title: sec.title, correct, total, pct: pctSec };
+      })
+    : null;
+
+  // Score estimate for mock exam
+  const examTag = quiz?.examTags?.[0];
+  const cutoffs = examTag ? MOCK_EXAM_CUTOFFS[examTag] : null;
+  const scoreEstimate = cutoffs
+    ? cutoffs.find((c) => pct >= c.min)?.label ?? null
+    : null;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -132,6 +170,72 @@ export default function ResultsPage() {
         <div className="mb-8" />
       )}
 
+      {/* Mock exam: per-section breakdown + score estimate */}
+      {isMockExam && sectionBreakdown && sectionBreakdown.length > 0 && (
+        <div className="mb-8 space-y-4">
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-widest">
+            Section Breakdown
+          </h2>
+          <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+            {sectionBreakdown.map((sec) => {
+              const barColor =
+                sec.pct >= 80
+                  ? "bg-emerald-500"
+                  : sec.pct >= 60
+                  ? "bg-primary"
+                  : "bg-destructive";
+              return (
+                <div key={sec.title} className="px-5 py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-sm font-medium">{sec.title}</span>
+                    <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                      {sec.correct}/{sec.total}
+                      <span className="text-xs ml-1">({sec.pct}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${barColor} transition-all duration-500`}
+                      style={{ width: `${sec.pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {scoreEstimate && (
+            <div
+              className={`rounded-xl border px-5 py-4 ${
+                pct >= 80
+                  ? "border-emerald-500/20 bg-emerald-500/5"
+                  : pct >= 65
+                  ? "border-amber-500/20 bg-amber-500/5"
+                  : "border-destructive/20 bg-destructive/5"
+              }`}
+            >
+              <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-1">
+                Score estimate · {examTag}
+              </p>
+              <p
+                className={`font-mono text-sm font-semibold ${
+                  pct >= 80
+                    ? "text-emerald-400"
+                    : pct >= 65
+                    ? "text-amber-400"
+                    : "text-destructive"
+                }`}
+              >
+                {scoreEstimate}
+              </p>
+              <p className="font-mono text-xs text-muted-foreground mt-1">
+                This is an estimate based on historical cutoff ranges, not an official prediction.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Question breakdown */}
       {quiz && (
         <div className="mb-8">
@@ -172,6 +276,20 @@ export default function ResultsPage() {
                         </div>
                       )}
                     </div>
+                    {token && (
+                      <button
+                        type="button"
+                        onClick={() => setReportTarget(r.questionId)}
+                        className="shrink-0 mt-0.5 p-1 rounded text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                        title="Report an issue with this question"
+                        aria-label="Flag question"
+                      >
+                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                          <line x1="4" y1="22" x2="4" y2="15" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -181,7 +299,7 @@ export default function ResultsPage() {
       )}
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 mb-8">
         <Link href={`/quiz/${id}/leaderboard`}>
           <Button variant="outline" className="font-medium text-sm">
             View Leaderboard
@@ -192,12 +310,41 @@ export default function ResultsPage() {
             Try Again
           </Button>
         </Link>
-        <Link href="/">
+        <Link href={isMockExam ? "/mock-exams" : "/"}>
           <Button className="font-medium text-sm">
-            Browse More Quizzes
+            {isMockExam ? "More Simulators" : "Browse More Quizzes"}
           </Button>
         </Link>
       </div>
+
+      {/* Star rating */}
+      {token && (
+        <div className="rounded-xl border border-border bg-card px-6 py-5">
+          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">
+            Rate this quiz
+          </p>
+          <div className="flex items-center gap-4">
+            <StarRating value={quizRating?.userRating ?? null} onChange={handleRate} />
+            {quizRating && quizRating.totalRatings > 0 && (
+              <p className="font-mono text-xs text-muted-foreground">
+                {quizRating.averageRating?.toFixed(1)} / 5
+                <span className="ml-1">({quizRating.totalRatings} {quizRating.totalRatings === 1 ? "rating" : "ratings"})</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Report modal */}
+      {token && reportTarget && (
+        <ReportModal
+          questionId={reportTarget}
+          quizId={id}
+          token={token}
+          open={!!reportTarget}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
     </div>
   );
 }

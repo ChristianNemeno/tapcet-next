@@ -27,6 +27,10 @@ graph TD
 | `/register` | `app/register/page.tsx` | None | Registration form |
 | `/dashboard` | `app/dashboard/page.tsx` | Required | User's quiz attempt history table |
 | `/admin` | `app/admin/page.tsx` | Admin only | Quiz management — list, create, delete quizzes |
+| `/collections` | `app/collections/page.tsx` | None | Collections browse page |
+| `/collection/[id]` | `app/collection/[id]/page.tsx` | None | Collection details and quiz list |
+| `/collection/create` | `app/collection/create/page.tsx` | Required | Create collection form |
+| `/collection/[id]/edit` | `app/collection/[id]/edit/page.tsx` | Required | Update collection metadata and quizzes |
 
 ## Authentication
 
@@ -87,6 +91,15 @@ A thin wrapper around `fetch()` that provides typed functions for all API calls:
 | `fetchDashboard(token)` | `GET /api/dashboard` | Required |
 | `login(email, password)` | `POST /api/auth/login` | None |
 | `register(email, password, name)` | `POST /api/auth/register` | None |
+| `fetchCollections()` | `GET /api/collections` | None |
+| `fetchCollection(id, token?)` | `GET /api/collection/:id` | Optional |
+| `createCollection(data, token)` | `POST /api/collection` | Required |
+| `updateCollection(id, data, token)` | `PUT /api/collection/:id` | Required |
+| `deleteCollection(id, token)` | `DELETE /api/collection/:id` | Required |
+| `fetchMyCollections(token)` | `GET /api/my-collections` | Required |
+| `toggleFollowCollection(id, token)` | `POST /api/collection/:id/follow` | Required |
+| `addQuizToCollection(id, quizId, token)` | `POST /api/collection/:id/quizzes/:quizId` | Required |
+| `removeQuizFromCollection(id, quizId, token)`| `DELETE /api/collection/:id/quizzes/:quizId`| Required |
 
 All functions use a shared `parseResponse<T>()` helper that:
 1. Checks `res.ok` and throws an `Error` with the server's error message if not
@@ -109,6 +122,9 @@ Shared type definitions for API responses:
 | `LeaderboardEntry` | Leaderboard row |
 | `DashboardEntry` | Dashboard row (includes `quizTitle`) |
 | `AuthResponse` | Login/register response (`token`, `name`, `role`) |
+| `QuizSection` | Represent a section containing its grouped questions |
+| `CollectionSummary`| Collection metadata for browse lists |
+| `CollectionDetail` | Full collection info with mapped quizzes |
 
 ## Components
 

@@ -16,6 +16,8 @@ import type {
   AuthResponse,
   MyQuizSummary,
   QuizFormPayload,
+  QuizRating,
+  AdminReport,
 } from "./types";
 
 const BASE = "/api";
@@ -32,12 +34,17 @@ function authHeader(token?: string | null): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function fetchQuizzes(params?: { exam?: string; subject?: string; official?: boolean }): Promise<QuizSummary[]> {
+export async function fetchQuizzes(params?: { exam?: string; subject?: string; official?: boolean; quizType?: string }): Promise<QuizSummary[]> {
   const url = new URL(`${BASE}/quizzes`, window.location.origin);
   if (params?.exam) url.searchParams.set("exam", params.exam);
   if (params?.subject) url.searchParams.set("subject", params.subject);
   if (params?.official) url.searchParams.set("official", "true");
+  if (params?.quizType) url.searchParams.set("quizType", params.quizType);
   return parseResponse(await fetch(url.toString()));
+}
+
+export async function fetchMockExams(exam?: string): Promise<QuizSummary[]> {
+  return fetchQuizzes({ quizType: "mock_exam", official: true, ...(exam ? { exam } : {}) });
 }
 
 export async function fetchQuiz(id: string): Promise<QuizDetail> {
@@ -246,6 +253,63 @@ export async function answerReviewItem(
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeader(token) },
       body: JSON.stringify({ questionId, selectedAnswer }),
+    })
+  );
+}
+
+export async function fetchQuizRating(id: string, token?: string | null): Promise<QuizRating> {
+  return parseResponse(
+    await fetch(`${BASE}/quiz/${id}/rating`, { headers: authHeader(token) })
+  );
+}
+
+export async function rateQuiz(id: string, rating: number, token: string): Promise<QuizRating> {
+  return parseResponse(
+    await fetch(`${BASE}/quiz/${id}/rate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader(token) },
+      body: JSON.stringify({ rating }),
+    })
+  );
+}
+
+export async function reportQuestion(
+  questionId: string,
+  payload: { quizId: string; reportType: "incorrect" | "ambiguous" | "duplicate"; comment?: string },
+  token: string
+): Promise<void> {
+  const res = await fetch(`${BASE}/question/${questionId}/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader(token) },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+  }
+}
+
+export async function fetchAdminReports(
+  params: { status?: string; reportType?: string; page?: number },
+  token: string
+): Promise<AdminReport[]> {
+  const url = new URL(`${BASE}/admin/reports`, window.location.origin);
+  if (params.status) url.searchParams.set("status", params.status);
+  if (params.reportType) url.searchParams.set("reportType", params.reportType);
+  if (params.page) url.searchParams.set("page", String(params.page));
+  return parseResponse(await fetch(url.toString(), { headers: authHeader(token) }));
+}
+
+export async function resolveReport(
+  id: string,
+  status: "open" | "reviewing" | "resolved",
+  token: string
+): Promise<AdminReport> {
+  return parseResponse(
+    await fetch(`${BASE}/admin/report/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeader(token) },
+      body: JSON.stringify({ status }),
     })
   );
 }

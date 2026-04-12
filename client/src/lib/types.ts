@@ -9,6 +9,7 @@ export interface QuizSummary {
   isOfficial: boolean;
   scoringMode: "standard" | "penalized";
   penaltyFraction: number;
+  quizType: "standard" | "mock_exam";
   questionCount: number;
   creatorName: string | null;
 }
@@ -36,6 +37,27 @@ export interface QuizDetail extends Omit<QuizSummary, "questionCount"> {
   createdBy: string | null;
 }
 
+export interface QuizRating {
+  averageRating: number | null;
+  totalRatings: number;
+  userRating: number | null;
+}
+
+export interface AdminReport {
+  id: string;
+  reportType: "incorrect" | "ambiguous" | "duplicate";
+  status: "open" | "reviewing" | "resolved";
+  comment: string;
+  createdAt: string;
+  resolvedAt: string | null;
+  questionId: string;
+  questionText: string;
+  quizId: string;
+  quizTitle: string;
+  reporterName: string;
+  resolvedBy: string | null;
+}
+
 export interface MyQuizSummary {
   id: string;
   title: string;
@@ -58,6 +80,7 @@ export interface QuizFormPayload {
   subject?: string | null;
   topic?: string | null;
   isOfficial?: boolean;
+  quizType?: "standard" | "mock_exam";
   scoringMode?: "standard" | "penalized";
   penaltyFraction?: number;
   questions: Array<{ text: string; options: string[]; answer: number }>;

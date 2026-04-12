@@ -14,6 +14,9 @@ import {
 export const roleEnum = pgEnum("role", ["user", "admin"]);
 export const visibilityEnum = pgEnum("visibility", ["public", "draft"]);
 export const scoringModeEnum = pgEnum("scoring_mode", ["standard", "penalized"]);
+export const quizTypeEnum = pgEnum("quiz_type", ["standard", "mock_exam"]);
+export const reportTypeEnum = pgEnum("report_type", ["incorrect", "ambiguous", "duplicate"]);
+export const reportStatusEnum = pgEnum("report_status", ["open", "reviewing", "resolved"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -37,6 +40,7 @@ export const quizzes = pgTable("quizzes", {
   isOfficial: boolean("is_official").notNull().default(false),
   scoringMode: scoringModeEnum("scoring_mode").notNull().default("standard"),
   penaltyFraction: real("penalty_fraction").notNull().default(0.25),
+  quizType: quizTypeEnum("quiz_type").notNull().default("standard"),
 });
 
 export const sections = pgTable("sections", {
@@ -105,6 +109,31 @@ export const collectionFollows = pgTable(
   },
   (t) => [uniqueIndex("collection_follows_unique_idx").on(t.userId, t.collectionId)]
 );
+
+export const quizRatings = pgTable(
+  "quiz_ratings",
+  {
+    id:      uuid("id").primaryKey().defaultRandom(),
+    userId:  uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    quizId:  uuid("quiz_id").notNull().references(() => quizzes.id, { onDelete: "cascade" }),
+    rating:  integer("rating").notNull(),
+    ratedAt: timestamp("rated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("quiz_ratings_user_quiz_idx").on(t.userId, t.quizId)]
+);
+
+export const questionReports = pgTable("question_reports", {
+  id:         uuid("id").primaryKey().defaultRandom(),
+  userId:     uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
+  quizId:     uuid("quiz_id").notNull().references(() => quizzes.id, { onDelete: "cascade" }),
+  reportType: reportTypeEnum("report_type").notNull(),
+  comment:    text("comment").notNull().default(""),
+  status:     reportStatusEnum("status").notNull().default("open"),
+  createdAt:  timestamp("created_at").notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: uuid("resolved_by").references(() => users.id, { onDelete: "set null" }),
+});
 
 export const reviewQueue = pgTable(
   "review_queue",

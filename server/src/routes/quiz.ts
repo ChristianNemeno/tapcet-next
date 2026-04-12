@@ -9,11 +9,13 @@ const router = Router();
 // GET /api/quizzes — list public quizzes with question count and creator name
 router.get("/quizzes", async (req, res, next) => {
   try {
-    const { exam, subject, official } = req.query as { exam?: string; subject?: string; official?: string };
+    const { exam, subject, official, quizType } = req.query as { exam?: string; subject?: string; official?: string; quizType?: string };
     const conditions = [eq(quizzes.visibility, "public")];
     if (exam) conditions.push(arrayContains(quizzes.examTags, [exam]));
     if (subject) conditions.push(eq(quizzes.subject, subject));
     if (official === "true") conditions.push(eq(quizzes.isOfficial, true));
+    if (quizType === "mock_exam") conditions.push(eq(quizzes.quizType, "mock_exam"));
+    else if (quizType === "standard") conditions.push(eq(quizzes.quizType, "standard"));
 
     const rows = await db
       .select({
@@ -25,6 +27,9 @@ router.get("/quizzes", async (req, res, next) => {
         subject: quizzes.subject,
         topic: quizzes.topic,
         isOfficial: quizzes.isOfficial,
+        scoringMode: quizzes.scoringMode,
+        penaltyFraction: quizzes.penaltyFraction,
+        quizType: quizzes.quizType,
         questionCount: count(questions.id),
         creatorName: users.name,
       })
@@ -56,6 +61,7 @@ router.get("/quiz/:id", async (req, res, next) => {
         isOfficial: quizzes.isOfficial,
         scoringMode: quizzes.scoringMode,
         penaltyFraction: quizzes.penaltyFraction,
+        quizType: quizzes.quizType,
         createdBy: quizzes.createdBy,
         visibility: quizzes.visibility,
         creatorName: users.name,
