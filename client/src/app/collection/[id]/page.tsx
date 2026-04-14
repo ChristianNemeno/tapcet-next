@@ -8,16 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { CollectionDetail, QuizSummary } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const SUBJECT_BADGE: Record<string, string> = {
-  "English":              "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25",
-  "Mathematics":          "bg-violet-500/10 text-violet-400 border border-violet-500/25",
-  "Science":              "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25",
-  "Abstract Reasoning":   "bg-amber-500/10 text-amber-400 border border-amber-500/25",
-  "Filipino":             "bg-rose-500/10 text-rose-400 border border-rose-500/25",
-  "Mechanical-Technical": "bg-yellow-500/10 text-yellow-400 border border-yellow-500/25",
-  "General Information":  "bg-sky-500/10 text-sky-400 border border-sky-500/25",
-};
+import { subjectBadge } from "@/lib/constants/subjects";
 
 function QuizRow({ quiz, index }: { quiz: QuizSummary & { orderIndex: number }; index: number }) {
   return (
@@ -31,7 +22,7 @@ function QuizRow({ quiz, index }: { quiz: QuizSummary & { orderIndex: number }; 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           {quiz.subject && (
-            <span className={`font-mono text-xs px-1.5 py-0.5 rounded-md ${SUBJECT_BADGE[quiz.subject] ?? "bg-muted text-muted-foreground border border-border"}`}>
+            <span className={`font-mono text-xs px-1.5 py-0.5 rounded-md ${subjectBadge(quiz.subject)}`}>
               {quiz.subject}
             </span>
           )}

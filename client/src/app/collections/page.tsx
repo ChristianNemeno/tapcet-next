@@ -8,6 +8,7 @@ import type { CollectionSummary } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXAM_TAGS } from "@/lib/constants";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 function CollectionCard({ col, index }: { col: CollectionSummary; index: number }) {
   return (
@@ -81,17 +82,19 @@ export default function CollectionsPage() {
   const { token, role } = useAuth();
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [examFilter, setExamFilter] = useState("");
   const [officialOnly, setOfficialOnly] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     fetchCollections({
       exam: examFilter || undefined,
       official: officialOnly || undefined,
     })
       .then(setCollections)
-      .catch(() => null)
+      .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [examFilter, officialOnly]);
 
@@ -99,6 +102,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
+      <ErrorAlert message={error} className="mb-6" />
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>

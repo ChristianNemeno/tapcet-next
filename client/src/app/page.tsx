@@ -7,27 +7,7 @@ import type { QuizSummary } from "@/lib/types";
 import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ─── Subject accent colors ───────────────────────────────────────────────────
-const SUBJECT_ACCENT: Record<string, string> = {
-  "English":              "#22D3EE",
-  "Mathematics":          "#A78BFA",
-  "Science":              "#34D399",
-  "Abstract Reasoning":   "#FBBF24",
-  "Filipino":             "#FB7185",
-  "Mechanical-Technical": "#FACC15",
-  "General Information":  "#38BDF8",
-};
-
-// Keep full Tailwind class strings static so JIT doesn't purge them
-const SUBJECT_BADGE: Record<string, string> = {
-  "English":              "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25",
-  "Mathematics":          "bg-violet-500/10 text-violet-400 border border-violet-500/25",
-  "Science":              "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25",
-  "Abstract Reasoning":   "bg-amber-500/10 text-amber-400 border border-amber-500/25",
-  "Filipino":             "bg-rose-500/10 text-rose-400 border border-rose-500/25",
-  "Mechanical-Technical": "bg-yellow-500/10 text-yellow-400 border border-yellow-500/25",
-  "General Information":  "bg-sky-500/10 text-sky-400 border border-sky-500/25",
-};
+import { subjectBadge, subjectAccent, SUBJECT_ACCENT, SUBJECT_BADGE } from "@/lib/constants/subjects";
 
 // ─── Subject SVG Illustrations ────────────────────────────────────────────────
 // All 64×64 viewBox, stroke="currentColor", geometric line-art style.

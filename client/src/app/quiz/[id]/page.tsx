@@ -9,16 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const SUBJECT_STYLES: Record<string, string> = {
-  "English":              "bg-cyan-500/10 text-cyan-400 border border-cyan-500/25",
-  "Mathematics":          "bg-violet-500/10 text-violet-400 border border-violet-500/25",
-  "Science":              "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25",
-  "Abstract Reasoning":   "bg-amber-500/10 text-amber-400 border border-amber-500/25",
-  "Filipino":             "bg-rose-500/10 text-rose-400 border border-rose-500/25",
-  "Mechanical-Technical": "bg-yellow-500/10 text-yellow-400 border border-yellow-500/25",
-  "General Information":  "bg-sky-500/10 text-sky-400 border border-sky-500/25",
-};
+import { subjectBadge } from "@/lib/constants/subjects";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,9 +108,7 @@ export default function QuizPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-20">
-        <div className="text-sm text-destructive border border-destructive/20 bg-destructive/5 rounded-lg px-4 py-3">
-          {error}
-        </div>
+        <ErrorAlert message={error} />
       </div>
     );
   }
@@ -127,9 +117,7 @@ export default function QuizPage() {
 
   // — Nickname / pre-quiz screen —
   if (step === "nickname") {
-    const subjectCls = quiz.subject
-      ? (SUBJECT_STYLES[quiz.subject] ?? "bg-muted text-muted-foreground border border-border")
-      : null;
+    const subjectCls = quiz.subject ? subjectBadge(quiz.subject) : null;
 
     return (
       <div className="mx-auto max-w-md px-6 py-16">

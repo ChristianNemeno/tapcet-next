@@ -11,6 +11,13 @@ import {
 import { eq, and, desc, asc, count, sql } from "drizzle-orm";
 import { authenticateToken, optionalAuth } from "../middleware/auth.js";
 import type { JwtPayload } from "../middleware/auth.js";
+import { validateBody } from "../middleware/validateRequest.js";
+import {
+  createCollectionSchema,
+  updateCollectionSchema,
+  type CreateCollectionInput,
+  type UpdateCollectionInput,
+} from "../schemas/collection.js";
 
 const router = Router();
 
@@ -142,25 +149,14 @@ router.get("/collection/:id", optionalAuth, async (req, res, next) => {
 });
 
 // ─── POST /api/collection ────────────────────────────────────────────────────
-router.post("/collection", authenticateToken, async (req, res, next) => {
+router.post("/collection", authenticateToken, validateBody(createCollectionSchema), async (req, res, next) => {
   try {
-    const { title, description, examTag, visibility, isOfficial } = req.body as {
-      title?: string;
-      description?: string;
-      examTag?: string | null;
-      visibility?: "public" | "draft";
-      isOfficial?: boolean;
-    };
-
-    if (!title?.trim()) {
-      res.status(400).json({ error: "title is required" });
-      return;
-    }
+    const { title, description, examTag, visibility, isOfficial } = req.body as CreateCollectionInput;
 
     const [col] = await db
       .insert(collections)
       .values({
-        title:       title.trim(),
+        title,
         description: description ?? "",
         examTag:     examTag ?? null,
         visibility:  visibility ?? "public",
@@ -176,7 +172,7 @@ router.post("/collection", authenticateToken, async (req, res, next) => {
 });
 
 // ─── PUT /api/collection/:id ─────────────────────────────────────────────────
-router.put("/collection/:id", authenticateToken, async (req, res, next) => {
+router.put("/collection/:id", authenticateToken, validateBody(updateCollectionSchema), async (req, res, next) => {
   try {
     const [col] = await db
       .select()
@@ -193,18 +189,12 @@ router.put("/collection/:id", authenticateToken, async (req, res, next) => {
       return;
     }
 
-    const { title, description, examTag, visibility, isOfficial } = req.body as {
-      title?: string;
-      description?: string;
-      examTag?: string | null;
-      visibility?: "public" | "draft";
-      isOfficial?: boolean;
-    };
+    const { title, description, examTag, visibility, isOfficial } = req.body as UpdateCollectionInput;
 
     const [updated] = await db
       .update(collections)
       .set({
-        ...(title       !== undefined && { title: title.trim() }),
+        ...(title       !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(examTag     !== undefined && { examTag }),
         ...(visibility  !== undefined && { visibility }),

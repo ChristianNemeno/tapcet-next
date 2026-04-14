@@ -37,6 +37,19 @@ export interface QuizDetail extends Omit<QuizSummary, "questionCount"> {
   createdBy: string | null;
 }
 
+export interface EditableQuizQuestion extends QuizQuestion {
+  answer: number;
+}
+
+export interface EditableQuizSection extends Omit<QuizSection, "questions"> {
+  questions: EditableQuizQuestion[];
+}
+
+export interface EditableQuizDetail extends Omit<QuizDetail, "questions" | "sections"> {
+  questions: EditableQuizQuestion[];
+  sections: EditableQuizSection[];
+}
+
 export interface QuizRating {
   averageRating: number | null;
   totalRatings: number;
@@ -83,7 +96,7 @@ export interface QuizFormPayload {
   quizType?: "standard" | "mock_exam";
   scoringMode?: "standard" | "penalized";
   penaltyFraction?: number;
-  questions: Array<{ text: string; options: string[]; answer: number }>;
+  questions?: Array<{ text: string; options: string[]; answer: number }>;
   sections?: Array<{
     title: string;
     timeLimitSeconds?: number | null;

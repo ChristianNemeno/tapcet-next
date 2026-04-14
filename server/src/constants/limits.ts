@@ -1,0 +1,3 @@
+export const MAX_NICKNAME_LENGTH = 20;
+export const MAX_REPORT_COMMENT_LENGTH = 500;
+export const ADMIN_REPORTS_PAGE_SIZE = 25;

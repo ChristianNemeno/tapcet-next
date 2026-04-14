@@ -5,6 +5,8 @@ import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { signToken } from "../middleware/auth.js";
+import { validateBody } from "../middleware/validateRequest.js";
+import { registerSchema, loginSchema, type RegisterInput, type LoginInput } from "../schemas/auth.js";
 
 const router = Router();
 
@@ -24,18 +26,9 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post("/register", registerLimiter, async (req, res, next) => {
+router.post("/register", registerLimiter, validateBody(registerSchema), async (req, res, next) => {
   try {
-    const { email, password, name } = req.body as {
-      email?: string;
-      password?: string;
-      name?: string;
-    };
-
-    if (!email || !password || !name) {
-      res.status(400).json({ error: "email, password, and name are required" });
-      return;
-    }
+    const { email, password, name } = req.body as RegisterInput;
 
     const existing = await db
       .select({ id: users.id })
@@ -61,17 +54,9 @@ router.post("/register", registerLimiter, async (req, res, next) => {
   }
 });
 
-router.post("/login", loginLimiter, async (req, res, next) => {
+router.post("/login", loginLimiter, validateBody(loginSchema), async (req, res, next) => {
   try {
-    const { email, password } = req.body as {
-      email?: string;
-      password?: string;
-    };
-
-    if (!email || !password) {
-      res.status(400).json({ error: "email and password are required" });
-      return;
-    }
+    const { email, password } = req.body as LoginInput;
 
     const [user] = await db
       .select()

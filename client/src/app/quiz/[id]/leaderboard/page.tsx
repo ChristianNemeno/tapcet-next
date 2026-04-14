@@ -7,6 +7,7 @@ import { fetchLeaderboard } from "@/lib/api";
 import type { LeaderboardEntry } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 export default function LeaderboardPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,11 +40,7 @@ export default function LeaderboardPage() {
         </Link>
       </div>
 
-      {error && (
-        <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2 mb-6">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} className="mb-6" />
 
       {/* Table header */}
       <div className="flex items-center gap-4 px-1 pb-3 border-b border-border font-mono text-xs text-muted-foreground tracking-tight">

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EXAM_TAGS } from "@/lib/constants";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 export default function CreateCollectionPage() {
   const router = useRouter();
@@ -65,11 +66,7 @@ export default function CreateCollectionPage() {
         </h1>
       </div>
 
-      {error && (
-        <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2 mb-6">
-          {error}
-        </div>
-      )}
+      <ErrorAlert message={error} className="mb-6" />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}

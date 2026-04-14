@@ -3,26 +3,25 @@ import { db } from "../db/index.js";
 import { questionReports, questions, quizzes, users } from "../db/schema.js";
 import { eq, and, desc } from "drizzle-orm";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
+import {
+  isReportReason,
+  isReportStatus,
+} from "../constants/reportStatus.js";
+import { MAX_REPORT_COMMENT_LENGTH, ADMIN_REPORTS_PAGE_SIZE } from "../constants/limits.js";
+import { validateBody } from "../middleware/validateRequest.js";
+import {
+  createReportSchema,
+  updateReportStatusSchema,
+  type CreateReportInput,
+  type UpdateReportStatusInput,
+} from "../schemas/report.js";
 
 const router = Router();
 
 // POST /api/question/:id/report — flag a question (auth required)
-router.post("/question/:id/report", authenticateToken, async (req, res, next) => {
+router.post("/question/:id/report", authenticateToken, validateBody(createReportSchema), async (req, res, next) => {
   try {
-    const { quizId, reportType, comment } = req.body as {
-      quizId?: string;
-      reportType?: "incorrect" | "ambiguous" | "duplicate";
-      comment?: string;
-    };
-
-    if (!quizId || !reportType) {
-      res.status(400).json({ error: "quizId and reportType are required" });
-      return;
-    }
-    if (!["incorrect", "ambiguous", "duplicate"].includes(reportType)) {
-      res.status(400).json({ error: "reportType must be incorrect, ambiguous, or duplicate" });
-      return;
-    }
+    const { quizId, reportType, comment } = req.body as CreateReportInput;
 
     // Verify the question belongs to the given quiz
     const [q] = await db
@@ -43,7 +42,7 @@ router.post("/question/:id/report", authenticateToken, async (req, res, next) =>
         questionId: req.params.id,
         quizId,
         reportType,
-        comment: comment?.trim().slice(0, 500) ?? "",
+        comment: comment?.trim().slice(0, MAX_REPORT_COMMENT_LENGTH) ?? "",
       })
       .returning();
 
@@ -63,15 +62,15 @@ router.get("/admin/reports", authenticateToken, requireAdmin, async (req, res, n
     };
 
     const pageNum = Math.max(1, parseInt(page ?? "1", 10));
-    const limit = 25;
+    const limit = ADMIN_REPORTS_PAGE_SIZE;
     const offset = (pageNum - 1) * limit;
 
     const conditions = [];
-    if (status && ["open", "reviewing", "resolved"].includes(status)) {
-      conditions.push(eq(questionReports.status, status as "open" | "reviewing" | "resolved"));
+    if (isReportStatus(status)) {
+      conditions.push(eq(questionReports.status, status));
     }
-    if (reportType && ["incorrect", "ambiguous", "duplicate"].includes(reportType)) {
-      conditions.push(eq(questionReports.reportType, reportType as "incorrect" | "ambiguous" | "duplicate"));
+    if (isReportReason(reportType)) {
+      conditions.push(eq(questionReports.reportType, reportType));
     }
 
     const rows = await db
@@ -105,14 +104,9 @@ router.get("/admin/reports", authenticateToken, requireAdmin, async (req, res, n
 });
 
 // PUT /api/admin/report/:id — update report status (admin only)
-router.put("/admin/report/:id", authenticateToken, requireAdmin, async (req, res, next) => {
+router.put("/admin/report/:id", authenticateToken, requireAdmin, validateBody(updateReportStatusSchema), async (req, res, next) => {
   try {
-    const { status } = req.body as { status?: "open" | "reviewing" | "resolved" };
-
-    if (!status || !["open", "reviewing", "resolved"].includes(status)) {
-      res.status(400).json({ error: "status must be open, reviewing, or resolved" });
-      return;
-    }
+    const { status } = req.body as UpdateReportStatusInput;
 
     const [updated] = await db
       .update(questionReports)

@@ -3,17 +3,11 @@ import { db } from "../db/index.js";
 import { reviewQueue, questions, quizzes } from "../db/schema.js";
 import { eq, and, lte, count } from "drizzle-orm";
 import { authenticateToken } from "../middleware/auth.js";
+import { nextIntervalAfterCorrect, intervalAfterMiss } from "../config/spacedRepetition.js";
+import { validateBody } from "../middleware/validateRequest.js";
+import { answerReviewSchema, type AnswerReviewInput } from "../schemas/review.js";
 
 const router = Router();
-
-const INTERVALS = [1, 3, 7, 14, 30];
-
-function nextInterval(current: number): number {
-  const idx = INTERVALS.indexOf(current);
-  return idx === -1 || idx === INTERVALS.length - 1
-    ? INTERVALS[INTERVALS.length - 1]
-    : INTERVALS[idx + 1];
-}
 
 // GET /api/review-queue — due items with full question data (answer field excluded)
 router.get("/review-queue", authenticateToken, async (req, res, next) => {
@@ -80,17 +74,9 @@ router.get("/review-queue/stats", authenticateToken, async (req, res, next) => {
 });
 
 // POST /api/review-queue/answer — grade answer, advance or reset interval
-router.post("/review-queue/answer", authenticateToken, async (req, res, next) => {
+router.post("/review-queue/answer", authenticateToken, validateBody(answerReviewSchema), async (req, res, next) => {
   try {
-    const { questionId, selectedAnswer } = req.body as {
-      questionId?: string;
-      selectedAnswer?: number;
-    };
-
-    if (!questionId || selectedAnswer === undefined) {
-      res.status(400).json({ error: "questionId and selectedAnswer are required" });
-      return;
-    }
+    const { questionId, selectedAnswer } = req.body as AnswerReviewInput;
 
     const [entry] = await db
       .select()
@@ -122,7 +108,7 @@ router.post("/review-queue/answer", authenticateToken, async (req, res, next) =>
     const correct = selectedAnswer === question.answer;
     const now = new Date();
 
-    const newIntervalDays = correct ? nextInterval(entry.intervalDays) : 1;
+    const newIntervalDays = correct ? nextIntervalAfterCorrect(entry.intervalDays) : intervalAfterMiss();
     const newMissCount    = correct ? entry.missCount : entry.missCount + 1;
 
     const nextReviewAt = new Date(now);

@@ -1,8 +1,12 @@
 import { Router } from "express";
 import { db } from "../db/index.js";
-import { quizzes, questions, leaderboard, users, reviewQueue, sections } from "../db/schema.js";
-import { eq, count, sum, desc, asc, and, arrayContains, isNotNull, sql } from "drizzle-orm";
+import { quizzes, questions, leaderboard, users, sections } from "../db/schema.js";
+import { eq, count, sum, desc, asc, and, arrayContains, isNotNull } from "drizzle-orm";
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
+import { MAX_NICKNAME_LENGTH } from "../constants/limits.js";
+import { validateBody } from "../middleware/validateRequest.js";
+import { submitQuizSchema, type SubmitQuizInput } from "../schemas/quiz.js";
+import { gradeQuizAttempt, enqueueMissedForReview } from "../services/gradingService.js";
 
 const router = Router();
 
@@ -111,17 +115,9 @@ router.get("/quiz/:id", async (req, res, next) => {
 });
 
 // POST /api/quiz/:id/submit — grade answers server-side
-router.post("/quiz/:id/submit", optionalAuth, async (req, res, next) => {
+router.post("/quiz/:id/submit", optionalAuth, validateBody(submitQuizSchema), async (req, res, next) => {
   try {
-    const { answers, nickname } = req.body as {
-      answers?: Record<string, number>;
-      nickname?: string;
-    };
-
-    if (!answers || typeof answers !== "object") {
-      res.status(400).json({ error: "answers object is required" });
-      return;
-    }
+    const { answers, nickname } = req.body as SubmitQuizInput;
 
     const [quiz] = await db
       .select()
@@ -134,65 +130,19 @@ router.post("/quiz/:id/submit", optionalAuth, async (req, res, next) => {
       return;
     }
 
-    const qs = await db
-      .select()
-      .from(questions)
-      .where(eq(questions.quizId, quiz.id))
-      .orderBy(asc(questions.orderIndex));
+    const { results, score, total, percentage, penaltyPoints } = await gradeQuizAttempt(
+      quiz.id,
+      answers,
+      quiz.scoringMode,
+      quiz.penaltyFraction
+    );
 
-    const results = qs.map((q) => {
-      const selected = answers[q.id] ?? -1;
-      return {
-        questionId: q.id,
-        correct: selected === q.answer,
-        selectedAnswer: selected,
-        correctAnswer: q.answer,
-      };
-    });
-
-    const correctCount = results.filter((r) => r.correct).length;
-    const wrongCount = results.filter((r) => !r.correct && r.selectedAnswer !== -1).length;
-    let penaltyPoints = 0;
-    if (quiz.scoringMode === "penalized") {
-      penaltyPoints = wrongCount * quiz.penaltyFraction;
-    }
-    const score = correctCount;
-    const total = qs.length;
-    const percentage = total > 0 ? ((score - penaltyPoints) / total) * 100 : 0;
-
-    // Upsert missed questions into review queue (authenticated users only)
     if (req.user?.userId) {
-      const wrongIds = results.filter((r) => !r.correct).map((r) => r.questionId);
-      if (wrongIds.length > 0) {
-        const now = new Date();
-        const nextReview = new Date(now);
-        nextReview.setDate(nextReview.getDate() + 1);
-        await db
-          .insert(reviewQueue)
-          .values(
-            wrongIds.map((questionId) => ({
-              userId: req.user!.userId,
-              questionId,
-              nextReviewAt: nextReview,
-              intervalDays: 1,
-              missCount: 1,
-              updatedAt: now,
-            }))
-          )
-          .onConflictDoUpdate({
-            target: [reviewQueue.userId, reviewQueue.questionId],
-            set: {
-              intervalDays: 1,
-              nextReviewAt: nextReview,
-              missCount: sql`${reviewQueue.missCount} + 1`,
-              updatedAt: now,
-            },
-          });
-      }
+      const missedIds = results.filter((r) => !r.correct).map((r) => r.questionId);
+      await enqueueMissedForReview(req.user.userId, missedIds);
     }
 
-    const displayNickname =
-      nickname?.trim().slice(0, 20) || "Anonymous";
+    const displayNickname = nickname?.trim().slice(0, MAX_NICKNAME_LENGTH) || "Anonymous";
 
     await db.insert(leaderboard).values({
       quizId: quiz.id,

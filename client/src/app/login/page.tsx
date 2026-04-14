@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,11 +45,7 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {error && (
-          <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2">
-            {error}
-          </div>
-        )}
+        <ErrorAlert message={error} />
         <div className="space-y-1.5">
           <Label htmlFor="email" className="font-mono text-xs tracking-tight">
             Email

@@ -8,6 +8,7 @@ import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ErrorAlert } from "@/components/ErrorAlert";
 
 interface QuestionDraft {
   text: string;
@@ -198,11 +199,7 @@ export default function CreateQuizPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {error && (
-          <div className="font-mono text-xs text-destructive border border-destructive/20 bg-destructive/5 rounded px-3 py-2">
-            {error}
-          </div>
-        )}
+        <ErrorAlert message={error} />
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
