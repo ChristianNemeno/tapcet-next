@@ -53,7 +53,7 @@ A quiz creator uploads a CSV file with questions formatted in a standard templat
 
 ---
 
-### EP-01: Public Creator Profiles 📋 Sprint 2
+### EP-01: Public Creator Profiles ✅ Done
 A public page at `/user/:id` (or `/user/:name`) showing a creator's published quizzes, collection count, total quiz takers, and average rating. Students can browse by creator.
 
 **Why:** Builds a reputation layer. Quality contributors get visibility. Students can find and follow reliable sources.

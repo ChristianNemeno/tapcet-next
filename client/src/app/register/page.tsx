@@ -25,7 +25,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const res = await register(email, password, name);
-      setAuth(res.token, res.name, res.role);
+      setAuth(res.token, res.name, res.role, res.userId);
       router.push("/");
     } catch (err) {
       setError((err as Error).message);

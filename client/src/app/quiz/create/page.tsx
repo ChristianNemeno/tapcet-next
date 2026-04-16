@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { CsvImporter } from "@/components/CsvImporter";
+import { JsonImporter } from "@/components/JsonImporter";
 
 interface QuestionDraft {
   text: string;
@@ -463,6 +464,17 @@ export default function CreateQuizPage() {
             <CsvImporter
               token={token}
               onImport={(imported) => setQuestions(imported)}
+              mode="replace"
+            />
+            <JsonImporter
+              onImport={(imported, meta) => {
+                setQuestions(imported);
+                if (meta?.title) setTitle(meta.title);
+                if (meta?.description) setDescription(meta.description);
+                if (meta?.examTags) setExamTags(meta.examTags);
+                if (meta?.subject !== undefined) setSubject(meta.subject ?? "");
+                if (meta?.topic !== undefined) setTopic(meta.topic ?? "");
+              }}
               mode="replace"
             />
             <Button

@@ -62,20 +62,21 @@ describe("login()", () => {
   it("updates the context state", () => {
     const ref = renderWithAuth();
     act(() => {
-      ref.current?.login("new-token", "Bob", "admin");
+      ref.current?.login("new-token", "Bob", "admin", "user-uuid-1");
     });
     expect(ref.current?.token).toBe("new-token");
     expect(ref.current?.name).toBe("Bob");
     expect(ref.current?.role).toBe("admin");
+    expect(ref.current?.userId).toBe("user-uuid-1");
   });
 
   it("persists the new auth state to localStorage", () => {
     const ref = renderWithAuth();
     act(() => {
-      ref.current?.login("t", "Bob", "user");
+      ref.current?.login("t", "Bob", "user", "user-uuid-2");
     });
     const stored = JSON.parse(localStorage.getItem("tapcet_auth") ?? "null");
-    expect(stored).toEqual({ token: "t", name: "Bob", role: "user" });
+    expect(stored).toEqual({ token: "t", name: "Bob", role: "user", userId: "user-uuid-2" });
   });
 });
 

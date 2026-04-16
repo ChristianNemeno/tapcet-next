@@ -24,7 +24,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(email, password);
-      setAuth(res.token, res.name, res.role);
+      setAuth(res.token, res.name, res.role, res.userId);
       router.push("/");
     } catch (err) {
       setError((err as Error).message);

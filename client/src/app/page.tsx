@@ -343,9 +343,21 @@ function QuizCard({ quiz, index }: { quiz: QuizSummary; index: number }) {
               <span className="font-mono text-xs text-muted-foreground">{timeMin}m</span>
             </>
           )}
-          <span className="font-mono text-xs text-muted-foreground ml-auto truncate">
-            {quiz.isOfficial ? "Official" : quiz.creatorName ? `by ${quiz.creatorName}` : "Community"}
-          </span>
+          {quiz.isOfficial ? (
+            <span className="font-mono text-xs text-muted-foreground ml-auto truncate">Official</span>
+          ) : quiz.createdBy && quiz.creatorName ? (
+            <span
+              className="font-mono text-xs text-muted-foreground ml-auto truncate hover:text-foreground transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              by{" "}
+              <Link href={`/user/${quiz.createdBy}`} className="hover:underline underline-offset-2">
+                {quiz.creatorName}
+              </Link>
+            </span>
+          ) : (
+            <span className="font-mono text-xs text-muted-foreground ml-auto truncate">Community</span>
+          )}
         </div>
       </div>
     </Link>

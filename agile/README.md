@@ -53,6 +53,7 @@ agile/
 ├── done/                   ← completed feature documentation
 │   └── features.md
 └── history/                ← dated implementation notes per feature
+    ├── 2026-04-16-creator-profiles-json-import.md
     ├── 2026-04-16-shareable-links.md
     ├── 2026-04-16-csv-import.md
     ├── 2026-04-16-infra-fixes.md
@@ -70,7 +71,7 @@ agile/
 | Sprint | Goal | Status |
 |---|---|---|
 | [Sprint 1](sprints/sprint-01.md) | Shareable links + CSV import | ✅ Done (20/20 SP) |
-| [Sprint 2](sprints/sprint-02.md) | Creator profiles + JSON import | 📋 Upcoming (17 SP) |
+| [Sprint 2](sprints/sprint-02.md) | Creator profiles + JSON import | ✅ Done (17/17 SP) |
 | [Sprint 3](sprints/sprint-03.md) | Image support in questions | 📋 Upcoming (21 SP) |
 
 ---

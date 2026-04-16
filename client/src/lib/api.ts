@@ -19,6 +19,7 @@ import type {
   QuizFormPayload,
   QuizRating,
   AdminReport,
+  CreatorProfile,
 } from "./types";
 
 const BASE = "/api";
@@ -343,6 +344,10 @@ export async function resolveReport(
       body: JSON.stringify({ status }),
     })
   );
+}
+
+export async function fetchCreatorProfile(id: string): Promise<CreatorProfile> {
+  return parseResponse(await fetch(`${BASE}/user/${id}/profile`));
 }
 
 export interface CsvRow {

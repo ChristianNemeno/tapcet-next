@@ -12,6 +12,7 @@ export interface QuizSummary {
   quizType: "standard" | "mock_exam";
   questionCount: number;
   creatorName: string | null;
+  createdBy: string | null;
 }
 
 export interface QuizQuestion {
@@ -219,4 +220,26 @@ export interface AuthResponse {
   token: string;
   name: string;
   role: "user" | "admin";
+  userId: string;
+}
+
+export interface CreatorProfileCollection {
+  id: string;
+  title: string;
+  description: string;
+  examTag: string | null;
+  isOfficial: boolean;
+  quizCount: number;
+}
+
+export interface CreatorProfile {
+  id: string;
+  name: string;
+  joinedAt: string;
+  quizCount: number;
+  collectionCount: number;
+  totalAttempts: number;
+  averageRating: number | null;
+  quizzes: QuizSummary[];
+  collections: CreatorProfileCollection[];
 }

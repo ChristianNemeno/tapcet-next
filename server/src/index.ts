@@ -13,6 +13,7 @@ import reviewRouter from "./routes/review.js";
 import collectionRouter from "./routes/collection.js";
 import ratingRouter from "./routes/rating.js";
 import reportRouter from "./routes/report.js";
+import userRouter from "./routes/user.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -61,6 +62,7 @@ app.use("/api", reviewRouter);
 app.use("/api", collectionRouter);
 app.use("/api", ratingRouter);
 app.use("/api", reportRouter);
+app.use("/api", userRouter);
 
 app.use(
   (

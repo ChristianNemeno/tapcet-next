@@ -48,7 +48,7 @@ router.post("/register", registerLimiter, validateBody(registerSchema), async (r
       .returning({ id: users.id, role: users.role, name: users.name });
 
     const token = signToken({ userId: user.id, role: user.role });
-    res.status(201).json({ token, name: user.name, role: user.role });
+    res.status(201).json({ token, name: user.name, role: user.role, userId: user.id });
   } catch (err) {
     next(err);
   }
@@ -76,7 +76,7 @@ router.post("/login", loginLimiter, validateBody(loginSchema), async (req, res, 
     }
 
     const token = signToken({ userId: user.id, role: user.role });
-    res.json({ token, name: user.name, role: user.role });
+    res.json({ token, name: user.name, role: user.role, userId: user.id });
   } catch (err) {
     next(err);
   }

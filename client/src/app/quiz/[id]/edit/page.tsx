@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { CsvImporter } from "@/components/CsvImporter";
+import { JsonImporter } from "@/components/JsonImporter";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -350,6 +351,10 @@ export default function EditQuizPage() {
           ))}
           <CsvImporter
             token={token!}
+            onImport={(imported) => setQuestions((prev) => [...prev, ...imported])}
+            mode="append"
+          />
+          <JsonImporter
             onImport={(imported) => setQuestions((prev) => [...prev, ...imported])}
             mode="append"
           />

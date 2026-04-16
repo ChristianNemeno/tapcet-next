@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 
 export function Navbar() {
-  const { name, role, logout } = useAuth();
+  const { name, role, userId, logout } = useAuth();
 
   return (
     <header className="navbar sticky top-0 z-50 border-b border-border/60">
@@ -39,6 +39,13 @@ export function Navbar() {
                   + Create Quiz
                 </Button>
               </Link>
+              {userId && (
+                <Link href={`/user/${userId}`}>
+                  <Button variant="ghost" size="sm" className="text-xs font-medium hidden sm:inline-flex">
+                    My Profile
+                  </Button>
+                </Link>
+              )}
               {role === "admin" && (
                 <Link href="/admin">
                   <Button variant="ghost" size="sm" className="text-xs font-medium">

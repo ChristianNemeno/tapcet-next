@@ -36,12 +36,13 @@ router.get("/quizzes", async (req, res, next) => {
         quizType: quizzes.quizType,
         questionCount: count(questions.id),
         creatorName: users.name,
+        createdBy: quizzes.createdBy,
       })
       .from(quizzes)
       .leftJoin(questions, eq(questions.quizId, quizzes.id))
       .leftJoin(users, eq(users.id, quizzes.createdBy))
       .where(and(...conditions))
-      .groupBy(quizzes.id, quizzes.examTags, quizzes.subject, quizzes.topic, users.name)
+      .groupBy(quizzes.id, quizzes.examTags, quizzes.subject, quizzes.topic, users.name, quizzes.createdBy)
       .orderBy(desc(quizzes.isOfficial), asc(quizzes.title));
 
     res.json(rows);

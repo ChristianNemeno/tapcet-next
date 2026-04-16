@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { fetchQuiz, submitQuiz } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { QuizDetail, AnswersMap } from "@/lib/types";
@@ -139,6 +140,18 @@ export default function QuizPage() {
             <h1 className="text-2xl font-extrabold tracking-tight leading-snug">
               {quiz.title}
             </h1>
+            {quiz.creatorName && (
+              <p className="font-mono text-xs text-muted-foreground mt-1">
+                by{" "}
+                {quiz.createdBy ? (
+                  <Link href={`/user/${quiz.createdBy}`} className="hover:underline underline-offset-2 hover:text-foreground transition-colors">
+                    {quiz.creatorName}
+                  </Link>
+                ) : (
+                  quiz.creatorName
+                )}
+              </p>
+            )}
           </div>
 
           {/* Penalized scoring badge */}

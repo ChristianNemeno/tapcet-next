@@ -1,7 +1,7 @@
 # Sprint 2
 
 **Dates:** 2026-04-30 → 2026-05-13  
-**Status:** Upcoming  
+**Status:** Done  
 **Sprint Goal:** Give creators a public identity — students can browse quizzes by creator, see aggregate stats, and click through from any quiz card to a full creator profile. Also ships the deferred JSON import story from Sprint 1.
 
 ---
@@ -10,12 +10,12 @@
 
 | ID | Story | Points | Status |
 |---|---|---|---|
-| US-01-5 | Server endpoint `GET /api/user/:id/profile` | 3 | 📋 |
-| US-01-1 | Public creator profile page `/user/:id` | 5 | 📋 |
-| US-01-2 | Creator name links to profile on quiz cards + detail page | 2 | 📋 |
-| US-01-3 | Aggregate stats (quizzes, attempts, avg rating) on profile | 3 | 📋 |
-| US-01-4 | "My Profile" link in dashboard | 2 | 📋 |
-| US-03-5 | JSON import on create + edit pages | 2 | 📋 |
+| US-01-5 | Server endpoint `GET /api/user/:id/profile` | 3 | ✅ Done |
+| US-01-1 | Public creator profile page `/user/:id` | 5 | ✅ Done |
+| US-01-2 | Creator name links to profile on quiz cards + detail page | 2 | ✅ Done |
+| US-01-3 | Aggregate stats (quizzes, attempts, avg rating) on profile | 3 | ✅ Done |
+| US-01-4 | "My Profile" link in navbar | 2 | ✅ Done |
+| US-03-5 | JSON import on create + edit pages | 2 | ✅ Done |
 | **Total** | | **17 SP** | |
 
 > 3 SP buffer below nominal 20 SP capacity — use for polish, cross-browser testing, or absorbing scope surprises.
@@ -100,19 +100,30 @@ Start with the server endpoint — the UI stories all depend on it. JSON import 
 - Profile URL: `/user/:id` (UUID) vs. `/creator/:username` (display name). Recommend `:id` for now — display names are not unique in the current schema. Can add slug/username routing later.
 
 **Sprint Notes:**
-
-_(Fill in during sprint)_
+- Profile URL uses `/user/:id` (UUID) not `/user/:username` — display names not unique in schema. Slug routing deferred.
+- UUID regex guard added to profile endpoint — returns 404 before hitting DB on invalid UUID format.
+- JSON import is fully client-side (no server validation). The QuizFormPayload shape is simple enough that a server round-trip adds no value.
+- `userId` is now stored in the auth context via localStorage on login/register — avoids a `/api/me` round-trip to build the "My Profile" nav link.
+- US-01-4 was implemented as a navbar link ("My Profile") rather than a dashboard link — more discoverable.
 
 ---
 
 ## Sprint Review / Retrospective
 
-_(Fill in after sprint completes)_
-
-**Demo:**
+**Demo:** All 6 stories shipped on 2026-04-16.
+- Profile endpoint: `GET /api/user/:id/profile` with quiz/collection lists and aggregate stats.
+- Profile page: `/user/:id` with stat row (quizzes, collections, attempts, avg rating), quiz grid, collection grid.
+- Creator name on QuizCard (home page) and quiz detail pre-quiz screen now links to creator profile.
+- "My Profile" in navbar links to the current user's profile.
+- JSON importer on create (replace + metadata) and edit (append) pages.
 
 **What went well:**
+- Entire sprint delivered same day. Good scope.
+- UUID guard before DB query was a quick fix for an obvious 500.
+- Storing `userId` in the auth context at login time is the right architectural call — avoids an extra round-trip on every page load.
 
 **What to improve:**
+- QuizCard on the collection detail page doesn't show creator links because the collection endpoint doesn't return `createdBy` in its quiz list. Should be fixed in a follow-up if it matters.
+- The profile stat row shows "—" for avg rating if no ratings exist — consider also showing it on the quiz cards.
 
-**Velocity:** _ / 17 SP completed
+**Velocity:** 17 / 17 SP completed

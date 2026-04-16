@@ -3,7 +3,7 @@
 **Priority:** 🟡 Community & Growth  
 **Sprint:** 1  
 **Total Estimate:** 13 story points  
-**Status:** 🏃 In Sprint
+**Status:** ✅ Done
 
 ---
 
