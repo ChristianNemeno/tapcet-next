@@ -344,3 +344,27 @@ export async function resolveReport(
     })
   );
 }
+
+export interface CsvRow {
+  question: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  answer: string;
+}
+
+export interface CsvImportResult {
+  parsed: { text: string; options: [string, string, string, string]; answer: number }[];
+  errors: { row: number; message: string }[];
+}
+
+export async function validateCsvImport(rows: CsvRow[], token: string): Promise<CsvImportResult> {
+  return parseResponse(
+    await fetch(`${BASE}/quiz/import/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader(token) },
+      body: JSON.stringify({ rows }),
+    })
+  );
+}

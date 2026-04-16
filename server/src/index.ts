@@ -17,6 +17,9 @@ import reportRouter from "./routes/report.js";
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
+// Trust the nginx reverse proxy so express-rate-limit can read the real client IP
+app.set("trust proxy", 1);
+
 if (process.env.NODE_ENV !== "production") {
   app.use(
     cors({ origin: process.env.CLIENT_ORIGIN ?? "http://localhost:3000" })

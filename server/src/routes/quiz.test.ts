@@ -263,3 +263,111 @@ describe("GET /api/dashboard", () => {
     expect(res.body[0].quizTitle).toBe("Quiz 1");
   });
 });
+
+describe("POST /api/quiz/import/validate", () => {
+  const validRow = {
+    question: "What is 2 + 2?",
+    option_a: "3",
+    option_b: "4",
+    option_c: "5",
+    option_d: "6",
+    answer: "B",
+  };
+
+  it("returns 401 without auth token", async () => {
+    const res = await request.post("/api/quiz/import/validate").send({ rows: [validRow] });
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 400 when rows array is empty", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [] });
+    expect(res.status).toBe(400);
+  });
+
+  it("parses a valid row correctly", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [validRow] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed).toHaveLength(1);
+    expect(res.body.errors).toHaveLength(0);
+    expect(res.body.parsed[0]).toEqual({
+      text: "What is 2 + 2?",
+      options: ["3", "4", "5", "6"],
+      answer: 1,
+    });
+  });
+
+  it("accepts lowercase answer letters", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [{ ...validRow, answer: "a" }] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed[0].answer).toBe(0);
+  });
+
+  it("returns a row error when question is empty", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [{ ...validRow, question: "" }] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed).toHaveLength(0);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.errors[0].row).toBe(1);
+    expect(res.body.errors[0].message).toContain("question is empty");
+  });
+
+  it("returns a row error for invalid answer letter", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [{ ...validRow, answer: "E" }] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed).toHaveLength(0);
+    expect(res.body.errors[0].message).toContain("answer must be A, B, C, or D");
+  });
+
+  it("keeps valid rows even when some rows fail", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const badRow = { ...validRow, question: "", answer: "Z" };
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [validRow, badRow, validRow] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed).toHaveLength(2);
+    expect(res.body.errors).toHaveLength(1);
+    expect(res.body.errors[0].row).toBe(2);
+  });
+
+  it("trims whitespace from all fields", async () => {
+    const token = signToken({ userId: "user-1", role: "user" });
+    const paddedRow = {
+      question: "  What? ",
+      option_a: " Yes ",
+      option_b: " No ",
+      option_c: " Maybe ",
+      option_d: " Never ",
+      answer: " C ",
+    };
+    const res = await request
+      .post("/api/quiz/import/validate")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [paddedRow] });
+    expect(res.status).toBe(200);
+    expect(res.body.parsed[0].text).toBe("What?");
+    expect(res.body.parsed[0].options[0]).toBe("Yes");
+    expect(res.body.parsed[0].answer).toBe(2);
+  });
+});

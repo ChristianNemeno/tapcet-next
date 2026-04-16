@@ -1,7 +1,7 @@
 # Sprint 1
 
-**Dates:** TBD (2-week sprint)  
-**Status:** Planning  
+**Dates:** 2026-04-16 → 2026-04-29  
+**Status:** Done  
 **Sprint Goal:** Enable students and creators to share quizzes easily, and let content contributors bulk-import questions so large question banks are practical to create.
 
 ---
@@ -10,14 +10,14 @@
 
 | ID | Story | Points | Status |
 |---|---|---|---|
-| US-02-1 | Share button on quiz detail + results page | 2 | To Do |
-| US-02-2 | Share button on quiz cards (home + collections) | 2 | To Do |
-| US-02-3 | Share collection link | 2 | To Do |
-| US-02-4 | Share from results page | 2 | To Do |
-| US-03-1 | Download CSV template | 1 | To Do |
-| US-03-2 | Upload CSV on quiz creation page | 3 | To Do |
-| US-03-3 | Server-side CSV validation endpoint | 5 | To Do |
-| US-03-4 | Import CSV via quiz edit page | 3 | To Do |
+| US-02-1 | Share button on quiz detail + results page | 2 | ✅ Done |
+| US-02-2 | Share button on quiz cards (home + collections) | 2 | ✅ Done |
+| US-02-3 | Share collection link | 2 | ✅ Done |
+| US-02-4 | Share from results page | 2 | ✅ Done |
+| US-03-1 | Download CSV template | 1 | ✅ Done |
+| US-03-2 | Upload CSV on quiz creation page | 3 | ✅ Done |
+| US-03-3 | Server-side CSV validation endpoint | 5 | ✅ Done |
+| US-03-4 | Import CSV via quiz edit page | 3 | ✅ Done |
 | **Total** | | **20 SP** | |
 
 > US-03-5 (JSON import) is **deferred to Sprint 2** — 20 SP is the target capacity for this sprint.
@@ -70,46 +70,59 @@ Work shareable links first — they're frontend-only and build confidence. Then 
 Before marking Sprint 1 **Done**, all of the following must pass:
 
 ### Shareable Links
-- [ ] Copy link button works on quiz detail page
-- [ ] Copy link button works on quiz cards (home)
-- [ ] Copy link button works on collection detail page
-- [ ] Copy link button works on results page
-- [ ] "Link copied" toast appears and disappears after ~2 seconds
-- [ ] Works in Chrome, Firefox, Safari (clipboard API)
-- [ ] No auth required to use any share button
+- [x] Copy link button works on quiz detail page
+- [x] Copy link button works on quiz cards (home)
+- [x] Copy link button works on collection detail page
+- [x] Copy link button works on results page
+- [x] "Copied!" feedback appears and disappears after ~2 seconds (inline button state, no separate toast)
+- [x] Works in Chrome, Firefox, Safari (clipboard API + execCommand fallback)
+- [x] No auth required to use any share button
 
 ### CSV Import
-- [ ] Template CSV downloads with correct headers and example row
-- [ ] Valid CSV with 10 rows populates 10 questions in the quiz form
-- [ ] Invalid rows return row-specific error messages
-- [ ] Valid rows are kept even when some rows fail
-- [ ] Empty file / wrong file type shows a clear error
-- [ ] File > 1 MB is rejected with a clear error
-- [ ] CSV upload works on both create and edit pages
-- [ ] Imported questions can be edited/removed in the form before saving
+- [x] Template CSV downloads with correct headers and example row
+- [x] Valid CSV with 10 rows populates 10 questions in the quiz form
+- [x] Invalid rows return row-specific error messages
+- [x] Valid rows are kept even when some rows fail
+- [x] Empty file / wrong file type shows a clear error
+- [x] File > 1 MB is rejected with a clear error
+- [x] CSV upload works on both create and edit pages
+- [x] Imported questions can be edited/removed in the form before saving
 
 ---
 
 ## Sprint Notes
 
-_(Fill in during/after sprint)_
-
 **Decisions made:**
+- US-03-1/2/3/4: CSV parsing is client-side (papaparse), validation is server-side (`POST /api/quiz/import/validate`). Row errors are shown inline in `CsvImporter` component; valid rows are still imported even if some rows fail.
+- Edit page importer uses `mode="append"` — imported questions are appended to existing ones, not replaced.
+- Answer column accepts A/B/C/D (case-insensitive). 1-indexed numbers were not supported to avoid ambiguity.
+- Max 200 rows per import enforced on server; max 1 MB file size enforced client-side.
+- papaparse added to client dependencies — run `npm install` (or equivalent) in `client/` before building.
+- US-02-1/2/3/4 shipped as a single `CopyLinkButton` component (`client/src/components/CopyLinkButton.tsx`). Feedback is inline button state ("Copied!" for 2 s) rather than a toast — no toast library needed, simpler, works the same.
+- Results page share link points to `/quiz/:id` (not `/quiz/:id/results`) so the recipient can take the quiz.
+- QuizCard share icon stops click propagation to avoid navigating while copying.
+- Clipboard fallback uses `execCommand("copy")` for browsers that block the async Clipboard API without HTTPS.
 
-**Blockers:**
+**Blockers:** Infrastructure issues hit on 2026-04-16 (resolved same day) — see `history/2026-04-16-infra-fixes.md`
 
-**Deferred to backlog:**
+**Deferred to backlog:** None
 
 ---
 
 ## Sprint Review / Retrospective
 
-_(Fill in after sprint completes)_
-
-**Demo:** 
+**Demo:** Both epics delivered end-to-end on 2026-04-16.
+- Shareable links: copy button on quiz detail, results, quiz cards, and collection pages.
+- CSV import: template download, client-side parse (papaparse), server-side validation endpoint (`POST /api/quiz/import/validate`), integrated on both create and edit pages.
 
 **What went well:**
+- All 20 SP shipped in a single day rather than across 2 weeks — both epics were well-scoped and unblocked.
+- Single `CopyLinkButton` component covered all four share surfaces cleanly; no toast library needed.
+- Partial-import strategy (valid rows pass even when some rows fail) was the right call — keeps the UX forgiving for large uploads.
+- Server-side validation endpoint is thoroughly tested (8 tests), which made the client integration straightforward.
 
 **What to improve:**
+- Infrastructure setup cost a session at the start of the sprint (missing `.env`, `trust proxy` not set, stale Docker volume). Document the setup steps in `docs/` so it doesn't repeat.
+- The answer-column format (A/B/C/D only, no numeric) should be documented prominently in the template CSV, not just in code comments.
 
-**Velocity:** ___ / 20 SP completed
+**Velocity:** 20 / 20 SP completed

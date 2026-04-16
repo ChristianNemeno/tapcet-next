@@ -35,7 +35,7 @@ Ordered by priority. Items at the top are most valuable and most ready to work o
 
 ## 🟡 Community & Growth — Next Up
 
-### EP-02: Shareable Quiz Links 🏃 Sprint 1
+### EP-02: Shareable Quiz Links ✅ Done
 A student copies a link to a quiz and sends it to a classmate. The classmate clicks it and lands directly on the quiz. No navigating, no searching.
 
 **Why:** The highest-leverage growth feature missing right now. Every share is a free acquisition channel.
@@ -44,7 +44,7 @@ A student copies a link to a quiz and sends it to a classmate. The classmate cli
 
 ---
 
-### EP-03: CSV / JSON Import 🏃 Sprint 1
+### EP-03: CSV / JSON Import ✅ Done
 A quiz creator uploads a CSV file with questions formatted in a standard template, and the system imports them as a quiz. Removes the biggest friction point for large question banks.
 
 **Why:** Without this, creating a 100-question mock exam requires 100 manual form entries. No serious content contributor will do that.

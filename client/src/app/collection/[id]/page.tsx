@@ -9,6 +9,7 @@ import type { CollectionDetail, QuizSummary } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { subjectBadge } from "@/lib/constants/subjects";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 
 function QuizRow({ quiz, index }: { quiz: QuizSummary & { orderIndex: number }; index: number }) {
   return (
@@ -164,6 +165,7 @@ export default function CollectionPage() {
 
           {/* Actions */}
           <div className="flex flex-col gap-2 shrink-0">
+            <CopyLinkButton label="Share" />
             {token && (
               <Button
                 variant={col.isFollowing ? "outline" : "default"}

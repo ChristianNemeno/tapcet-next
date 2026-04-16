@@ -5,7 +5,7 @@ import { eq, count, sum, desc, asc, and, arrayContains, isNotNull } from "drizzl
 import { optionalAuth, authenticateToken } from "../middleware/auth.js";
 import { MAX_NICKNAME_LENGTH } from "../constants/limits.js";
 import { validateBody } from "../middleware/validateRequest.js";
-import { submitQuizSchema, type SubmitQuizInput } from "../schemas/quiz.js";
+import { submitQuizSchema, csvImportSchema, type SubmitQuizInput, type CsvImportRow } from "../schemas/quiz.js";
 import { gradeQuizAttempt, enqueueMissedForReview } from "../services/gradingService.js";
 
 const router = Router();
@@ -257,5 +257,54 @@ router.get("/dashboard/weakness", authenticateToken, async (req, res, next) => {
     next(err);
   }
 });
+
+// POST /api/quiz/import/validate — validate parsed CSV rows, return parsed questions + per-row errors
+router.post(
+  "/quiz/import/validate",
+  authenticateToken,
+  validateBody(csvImportSchema),
+  (req, res) => {
+    const { rows } = req.body as { rows: CsvImportRow[] };
+
+    const ANSWER_MAP: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
+
+    const parsed: { text: string; options: [string, string, string, string]; answer: number }[] = [];
+    const errors: { row: number; message: string }[] = [];
+
+    rows.forEach((row, idx) => {
+      const rowNum = idx + 1;
+      const rowErrors: string[] = [];
+
+      if (!row.question.trim()) rowErrors.push("question is empty");
+      if (!row.option_a.trim()) rowErrors.push("option_a is empty");
+      if (!row.option_b.trim()) rowErrors.push("option_b is empty");
+      if (!row.option_c.trim()) rowErrors.push("option_c is empty");
+      if (!row.option_d.trim()) rowErrors.push("option_d is empty");
+
+      const answerKey = row.answer.trim().toUpperCase();
+      const answerIdx = ANSWER_MAP[answerKey];
+      if (answerIdx === undefined) {
+        rowErrors.push(`answer must be A, B, C, or D (got "${row.answer}")`);
+      }
+
+      if (rowErrors.length > 0) {
+        errors.push({ row: rowNum, message: rowErrors.join("; ") });
+      } else {
+        parsed.push({
+          text: row.question.trim(),
+          options: [
+            row.option_a.trim(),
+            row.option_b.trim(),
+            row.option_c.trim(),
+            row.option_d.trim(),
+          ],
+          answer: answerIdx!,
+        });
+      }
+    });
+
+    res.json({ parsed, errors });
+  }
+);
 
 export default router;

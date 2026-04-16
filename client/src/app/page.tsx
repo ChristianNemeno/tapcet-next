@@ -8,6 +8,7 @@ import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { subjectBadge, subjectAccent, SUBJECT_ACCENT, SUBJECT_BADGE } from "@/lib/constants/subjects";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 
 // ─── Subject SVG Illustrations ────────────────────────────────────────────────
 // All 64×64 viewBox, stroke="currentColor", geometric line-art style.
@@ -275,7 +276,7 @@ function QuizCard({ quiz, index }: { quiz: QuizSummary; index: number }) {
   return (
     <Link href={`/quiz/${quiz.id}`} className="group block h-full">
       <div className="quiz-card h-full rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
-        {/* Subject + official badge + index */}
+        {/* Subject + official badge + index + share */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             {quiz.subject ? (
@@ -294,8 +295,14 @@ function QuizCard({ quiz, index }: { quiz: QuizSummary; index: number }) {
               </span>
             )}
           </div>
-          <span className="font-mono text-xs text-muted-foreground/40 tabular-nums shrink-0">
-            {String(index + 1).padStart(2, "0")}
+          {/* Stop click bubbling to the Link */}
+          <span onClick={(e) => e.stopPropagation()} className="shrink-0">
+            <CopyLinkButton
+              url={`${typeof window !== "undefined" ? window.location.origin : ""}/quiz/${quiz.id}`}
+              label=""
+              variant="ghost"
+              size="sm"
+            />
           </span>
         </div>
 

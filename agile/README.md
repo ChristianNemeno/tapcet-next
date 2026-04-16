@@ -53,6 +53,9 @@ agile/
 ├── done/                   ← completed feature documentation
 │   └── features.md
 └── history/                ← dated implementation notes per feature
+    ├── 2026-04-16-shareable-links.md
+    ├── 2026-04-16-csv-import.md
+    ├── 2026-04-16-infra-fixes.md
     ├── 2026-04-14-ratings-reports-mockexam-refactor.md
     ├── 2026-04-12-collections.md
     ├── 2026-04-11-review-queue.md
@@ -66,7 +69,9 @@ agile/
 
 | Sprint | Goal | Status |
 |---|---|---|
-| [Sprint 1](sprints/sprint-01.md) | Shareable links + CSV import | Planning |
+| [Sprint 1](sprints/sprint-01.md) | Shareable links + CSV import | ✅ Done (20/20 SP) |
+| [Sprint 2](sprints/sprint-02.md) | Creator profiles + JSON import | 📋 Upcoming (17 SP) |
+| [Sprint 3](sprints/sprint-03.md) | Image support in questions | 📋 Upcoming (21 SP) |
 
 ---
 
@@ -74,7 +79,7 @@ agile/
 
 | ID | Epic | Priority | Status |
 |---|---|---|---|
-| EP-01 | [Creator Profiles](epics/EP-01-creator-profiles.md) | 🟡 Community & Growth | Backlog |
-| EP-02 | [Shareable Links](epics/EP-02-shareable-links.md) | 🟡 Community & Growth | Sprint 1 |
-| EP-03 | [CSV / JSON Import](epics/EP-03-csv-import.md) | 🟡 Community & Growth | Sprint 1 |
-| EP-04 | [Image Support](epics/EP-04-image-support.md) | ⚪ Nice to Have | Backlog |
+| EP-01 | [Creator Profiles](epics/EP-01-creator-profiles.md) | 🟡 Community & Growth | Sprint 2 |
+| EP-02 | [Shareable Links](epics/EP-02-shareable-links.md) | 🟡 Community & Growth | ✅ Done |
+| EP-03 | [CSV / JSON Import](epics/EP-03-csv-import.md) | 🟡 Community & Growth | ✅ Done |
+| EP-04 | [Image Support](epics/EP-04-image-support.md) | ⚪ Nice to Have | Sprint 3 |

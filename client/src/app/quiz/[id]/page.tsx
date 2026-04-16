@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { subjectBadge } from "@/lib/constants/subjects";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>();
@@ -221,6 +222,9 @@ export default function QuizPage() {
           >
             Start Quiz →
           </Button>
+          <div className="flex justify-center">
+            <CopyLinkButton label="Share Quiz" variant="ghost" />
+          </div>
         </div>
       </div>
     );

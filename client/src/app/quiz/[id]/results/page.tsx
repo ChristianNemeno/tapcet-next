@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/StarRating";
 import { ReportModal } from "@/components/ReportModal";
 import { useAuth } from "@/lib/auth-context";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 
 function ScoreRing({ pct }: { pct: number }) {
   const r = 52;
@@ -300,6 +301,10 @@ export default function ResultsPage() {
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3 mb-8">
+        <CopyLinkButton
+          url={`${typeof window !== "undefined" ? window.location.origin : ""}/quiz/${id}`}
+          label="Share Quiz"
+        />
         <Link href={`/quiz/${id}/leaderboard`}>
           <Button variant="outline" className="font-medium text-sm">
             View Leaderboard

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { CsvImporter } from "@/components/CsvImporter";
 
 interface QuestionDraft {
   text: string;
@@ -390,6 +391,21 @@ export default function CreateQuizPage() {
           </div>
         )}
 
+        {/* CSV import hint */}
+        {!useSections && (
+          <p className="font-mono text-xs text-muted-foreground">
+            Have many questions?{" "}
+            <a
+              href="/quiz-template.csv"
+              download
+              className="text-primary hover:underline underline-offset-4"
+            >
+              Download the CSV template
+            </a>
+            {" "}and use the import button below.
+          </p>
+        )}
+
         {/* Questions — flat mode */}
         {!useSections && (
           <div className="space-y-6">
@@ -444,6 +460,11 @@ export default function CreateQuizPage() {
                 </p>
               </div>
             ))}
+            <CsvImporter
+              token={token}
+              onImport={(imported) => setQuestions(imported)}
+              mode="replace"
+            />
             <Button
               type="button"
               variant="outline"
