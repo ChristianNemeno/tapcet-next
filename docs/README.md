@@ -19,13 +19,6 @@ A quiz platform for Filipino students preparing for college entrance exams.
 | [API Reference](api-reference.md) | All REST endpoints with request/response examples |
 | [Client](client.md) | Pages, routing, auth context, API client, components |
 
-## Product
-
-| Document | Description |
-|---|---|
-| [Features](features.md) | Everything currently built and shipped |
-| [Roadmap](roadmap.md) | Planned features, priority tiers, build sequence |
-
 ## Diagrams
 
 | Document | Description |
@@ -45,6 +38,13 @@ A quiz platform for Filipino students preparing for college entrance exams.
 | [Exams](research/exams/) | Per-exam deep dives: UPCAT, ACET, USTET, DLSUCET, PUPCET |
 | [Scholarships](research/scholarships/) | DOST-SEI and JLSS scholarship exam details |
 
-## History
+## Planning & History
 
-Dated implementation notes in [history/](history/) — documents each major feature addition with schema changes, API design decisions, and implementation notes.
+Product planning, sprint work, and delivery history live in [`agile/`](../agile/README.md):
+
+| Document | Description |
+|---|---|
+| [Agile Workspace](../agile/README.md) | Sprint index, epic index, how we work |
+| [Product Backlog](../agile/product-backlog.md) | Prioritized feature backlog |
+| [Done Features](../agile/done/features.md) | Everything currently built and shipped |
+| [History](../agile/history/) | Dated implementation notes per feature |

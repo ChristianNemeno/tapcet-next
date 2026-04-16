@@ -244,16 +244,19 @@
 
 ---
 
-## Not Yet Implemented
+## In Progress / Planned
 
-- Recommended quizzes based on past attempts
-- Topic-level weakness breakdown (currently subject-level only; needs per-question attempt storage)
-- Personalized study suggestions / study plan
-- Adaptive learning features
-- Public creator profiles
-- Shareable quiz link / invite code
-- Import quiz from CSV / JSON
-- Difficulty ratings on questions
-- Image support in questions
-- Offline / PWA mode
-- Teacher / class dashboard
+> See [product-backlog.md](../product-backlog.md) for the full prioritized backlog and [epics/](../epics/) for detailed user stories.
+
+| Feature | Status |
+|---|---|
+| Shareable quiz / collection links | 🏃 Sprint 1 |
+| CSV / JSON import | 🏃 Sprint 1 |
+| Public creator profiles | 📋 Sprint 2 |
+| Image support in questions | 📋 Sprint 3 |
+| Difficulty ratings on questions | 💤 Future |
+| Offline / PWA mode | 💤 Future |
+| Recommended quizzes | 💤 Future |
+| Topic-level weakness breakdown | 💤 Future |
+| Study plan / daily goals | 💤 Future |
+| Adaptive learning | 💤 Future |

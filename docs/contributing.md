@@ -36,9 +36,15 @@ client/src/
 └── lib/          # Non-component code (API client, types, utilities)
 
 server/src/
+├── config/       # App configuration (e.g. spaced repetition intervals)
+├── constants/    # App-wide constants (nickname length, page sizes)
 ├── db/           # Database (schema, connection, seed, migrations)
-├── middleware/   # Express middleware (auth)
-└── routes/       # Express route handlers (one file per domain)
+├── lib/          # Shared utility functions
+├── middleware/   # Express middleware (auth, request validation)
+├── routes/       # Express route handlers (one file per domain)
+├── schemas/      # Zod validation schemas per domain
+├── services/     # Business logic (gradingService, quizService, ratingService)
+└── test-utils/   # Test helpers
 ```
 
 ## How to Add a New API Route
@@ -61,6 +67,23 @@ server/src/
     });
 
     export default router;
+    ```
+
+    For routes that accept a request body, use `validateBody()` with a Zod schema:
+
+    ```typescript
+    // server/src/schemas/example.ts
+    import { z } from "zod";
+    export const createExampleSchema = z.object({ name: z.string().min(1) });
+
+    // server/src/routes/example.ts
+    import { validateBody } from "../middleware/validateRequest.js";
+    import { createExampleSchema } from "../schemas/example.js";
+
+    router.post("/example", validateBody(createExampleSchema), async (req, res, next) => {
+      const { name } = req.body; // typed and validated
+      res.json({ name });
+    });
     ```
 
 2. **Register the router** in `server/src/index.ts`:

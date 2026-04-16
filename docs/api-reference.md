@@ -18,6 +18,7 @@ All endpoints accept and return JSON. Authenticated endpoints require an `Author
   - [POST /api/quiz](#post-apiquiz)
   - [PUT /api/quiz/:id](#put-apiquizid)
   - [DELETE /api/quiz/:id](#delete-apiquizid)
+  - [GET /api/quiz/:id/edit](#get-apiquizidedit)
   - [GET /api/my-quizzes](#get-apimy-quizzes)
 - [Collections](#collections)
   - [GET /api/collections](#get-apicollections)
@@ -31,6 +32,18 @@ All endpoints accept and return JSON. Authenticated endpoints require an `Author
   - [DELETE /api/collection/:id/quizzes/:quizId](#delete-apicollectionidquizzesquizid)
 - [Dashboard](#dashboard)
   - [GET /api/dashboard](#get-apidashboard)
+  - [GET /api/dashboard/weakness](#get-apidashboardweakness)
+- [Ratings](#ratings)
+  - [GET /api/quiz/:id/rating](#get-apiquizidrating)
+  - [POST /api/quiz/:id/rate](#post-apiquizidrate)
+- [Reports](#reports)
+  - [POST /api/question/:id/report](#post-apiquestionidreport)
+  - [GET /api/admin/reports](#get-apiadminreports)
+  - [PUT /api/admin/report/:id](#put-apiadminreportid)
+- [Review Queue](#review-queue)
+  - [GET /api/review-queue](#get-apireview-queue)
+  - [GET /api/review-queue/stats](#get-apireview-queuestats)
+  - [POST /api/review-queue/answer](#post-apireview-queueanswer)
 - [Admin](#admin)
   - [POST /api/admin/quizzes](#post-apiadminquizzes)
   - [PUT /api/admin/quizzes/:id](#put-apiadminquizzesid)
@@ -331,6 +344,24 @@ Delete a quiz and its questions/leaderboard.
 
 ---
 
+### GET `/api/quiz/:id/edit`
+
+Get a quiz with full question data including correct answers. Used to populate quiz edit forms.
+
+**Auth:** Required (must be quiz creator or admin)
+
+**Response** `200 OK`: Same shape as `GET /api/quiz/:id` but each question includes the `answer` field (0-based index of the correct option).
+
+**Errors:**
+
+| Status | Error |
+|---|---|
+| `401` | `Access token required` |
+| `403` | `Forbidden` |
+| `404` | `Quiz not found` |
+
+---
+
 ### GET `/api/my-quizzes`
 
 List all quizzes created by the authenticated user.
@@ -453,6 +484,211 @@ Results are ordered by `completedAt` descending (most recent first).
 
 ---
 
+### GET `/api/dashboard/weakness`
+
+Get per-subject accuracy analysis for the authenticated user.
+
+**Auth:** Required
+
+**Response** `200 OK`:
+
+```json
+[
+  {
+    "subject": "Mathematics",
+    "totalCorrect": 4,
+    "totalQuestions": 10,
+    "attempts": 2,
+    "percentage": 40
+  }
+]
+```
+
+Results are sorted by `percentage` ascending (weakest subjects first). Only subjects where the user has attempted quizzes appear.
+
+---
+
+## Ratings
+
+### GET `/api/quiz/:id/rating`
+
+Get the aggregate rating for a quiz. If authenticated, also returns the user's own rating.
+
+**Auth:** Optional
+
+**Response** `200 OK`:
+
+```json
+{
+  "averageRating": 4.2,
+  "totalRatings": 15,
+  "userRating": 5
+}
+```
+
+`userRating` is `null` if unauthenticated or if the user hasn't rated the quiz.
+
+---
+
+### POST `/api/quiz/:id/rate`
+
+Submit or update a rating for a quiz. Upserts — calling again replaces the previous rating.
+
+**Auth:** Required
+
+**Request Body:**
+
+```json
+{ "rating": 4 }
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `rating` | number | Yes | Integer 1–5 |
+
+**Response** `200 OK`: Same shape as `GET /api/quiz/:id/rating`.
+
+---
+
+## Reports
+
+### POST `/api/question/:id/report`
+
+Flag a question for admin review.
+
+**Auth:** Required
+
+**Request Body:**
+
+```json
+{
+  "quizId": "a1b2c3d4-...",
+  "reportType": "incorrect",
+  "comment": "The listed answer is wrong — option C is correct."
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `quizId` | string | Yes | Parent quiz UUID |
+| `reportType` | string | Yes | `"incorrect"`, `"ambiguous"`, or `"duplicate"` |
+| `comment` | string | No | Max 500 characters |
+
+**Response** `201 Created`
+
+---
+
+### GET `/api/admin/reports`
+
+List all question reports with pagination and optional filters.
+
+**Auth:** Admin
+
+**Query Params:**
+
+| Param | Values | Default |
+|---|---|---|
+| `status` | `open`, `reviewing`, `resolved` | all |
+| `reportType` | `incorrect`, `ambiguous`, `duplicate` | all |
+| `page` | number | `1` |
+
+**Response** `200 OK`: Array of report objects (25 per page), each including:
+- `id`, `reportType`, `status`, `comment`, `createdAt`, `resolvedAt`
+- `questionId`, `questionText`, `quizId`, `quizTitle`
+- `reporterName`, `resolvedBy`
+
+---
+
+### PUT `/api/admin/report/:id`
+
+Update the status of a question report.
+
+**Auth:** Admin
+
+**Request Body:**
+
+```json
+{ "status": "resolved" }
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `status` | string | Yes | `"open"`, `"reviewing"`, or `"resolved"` |
+
+**Response** `200 OK`: Updated report object.
+
+---
+
+## Review Queue
+
+### GET `/api/review-queue`
+
+Get all due review items for the authenticated user (`nextReviewAt <= NOW()`). Each item includes question text, options, and quiz metadata. **Correct answers are never exposed.**
+
+**Auth:** Required
+
+**Response** `200 OK`:
+
+```json
+[
+  {
+    "queueId": "rq-uuid-...",
+    "questionId": "q1-uuid-...",
+    "intervalDays": 3,
+    "missCount": 1,
+    "nextReviewAt": "2026-04-17T00:00:00.000Z",
+    "questionText": "What is the capital of France?",
+    "questionOptions": ["Berlin", "Madrid", "Paris", "Rome"],
+    "quizId": "quiz-uuid-...",
+    "quizTitle": "European Capitals",
+    "subject": "Geography"
+  }
+]
+```
+
+---
+
+### GET `/api/review-queue/stats`
+
+Get a summary of the user's review queue.
+
+**Auth:** Required
+
+**Response** `200 OK`:
+
+```json
+{ "dueToday": 3, "total": 12 }
+```
+
+---
+
+### POST `/api/review-queue/answer`
+
+Submit an answer for a review item. Grades server-side and advances or resets the spaced-repetition interval.
+
+**Auth:** Required
+
+**Request Body:**
+
+```json
+{ "questionId": "q1-uuid-...", "selectedAnswer": 2 }
+```
+
+**Response** `200 OK`:
+
+```json
+{
+  "correct": true,
+  "correctAnswer": 2,
+  "newIntervalDays": 3,
+  "nextReviewAt": "2026-04-19T00:00:00.000Z"
+}
+```
+
+**Interval schedule:** `[1, 3, 7, 14, 30]` days. Correct answer advances to the next step (stays at 30 if already there). Wrong answer resets to 1 day and increments `missCount`.
+
+---
+
 ## Admin
 
 All admin endpoints require authentication **and** the `admin` role. Both `authenticateToken` and `requireAdmin` middleware are applied to the entire router.
@@ -484,14 +720,22 @@ Create a new quiz with questions.
 |---|---|---|---|
 | `title` | string | Yes | Quiz title |
 | `description` | string | No | Defaults to `""` |
-| `timeLimitSeconds` | number | No | `null` for untimed quizzes |
+| `timeLimitSeconds` | number | No | `null` for untimed; omit when using sections |
 | `examTags` | string[] | No | Defaults to `[]` |
 | `subject` | string | No | Defaults to `null` |
 | `topic` | string | No | Defaults to `null` |
-| `questions` | array | Yes | At least 1 question required |
+| `isOfficial` | boolean | No | Mark as official quiz (admin only) |
+| `quizType` | string | No | `"standard"` (default) or `"mock_exam"` |
+| `scoringMode` | string | No | `"standard"` (default) or `"penalized"` |
+| `penaltyFraction` | number | No | Penalty per wrong answer (default `0.25`); only applies when `scoringMode` is `"penalized"` |
+| `questions` | array | Conditional | Flat question list — mutually exclusive with `sections` |
 | `questions[].text` | string | Yes | Question text |
 | `questions[].options` | string[] | Yes | Array of answer choices |
 | `questions[].answer` | number | Yes | 0-based index of the correct option |
+| `sections` | array | Conditional | Sectioned question groups — mutually exclusive with `questions` |
+| `sections[].title` | string | Yes | Section heading |
+| `sections[].timeLimitSeconds` | number | No | Per-section time limit; `null` for untimed |
+| `sections[].questions` | array | Yes | Same shape as flat `questions[]` |
 
 **Response** `201 Created`:
 
