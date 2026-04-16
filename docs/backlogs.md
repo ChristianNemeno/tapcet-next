@@ -30,18 +30,18 @@ Without this, tapcet is a generic quiz app. Every other feature — simulators, 
 
 ---
 
-### Penalized Scoring Mode (UPCAT)
+### ~~Penalized Scoring Mode (UPCAT)~~ ✅ Implemented (2026-04-11)
 UPCAT deducts points for wrong answers (right-minus-wrong formula). Students who practice in standard mode build the wrong strategy — they learn to guess freely when they should be selective.
 
-Each quiz should support a scoring mode:
+Each quiz supports a scoring mode:
 - `standard` — correct answers count, wrong answers ignored
 - `penalized` — wrong answers subtract a fraction of a point (configurable, default −0.25)
 
-**Schema impact:** `quizzes` gets a `scoringMode` enum field. Submit logic and results display need to reflect the selected mode.
+**Schema:** `quizzes.scoringMode`, `quizzes.penaltyFraction`, `leaderboard.penaltyPoints`
 
 ---
 
-### Section-Level Timers
+### ~~Section-Level Timers~~ ✅ Implemented (2026-04-11)
 The current quiz timer is a single countdown for the whole quiz. Real exams have per-section time limits:
 
 | Exam | Section | Items | Time |
@@ -51,70 +51,61 @@ The current quiz timer is a single countdown for the whole quiz. Real exams have
 | USTET | Math | 60 | 45 min |
 | ACET | Full exam | ~200 | 4+ hrs |
 
-A quiz should be configurable as sequential sections. Each section has its own item set and timer. The system auto-advances when time expires.
+A quiz can be configured as sequential sections. Each section has its own item set and timer. The system auto-advances when time expires.
 
-**Schema impact:** A `sections` table linked to quizzes, with questions belonging to a section. Significant refactor of the quiz-taking flow.
+**Schema:** `sections` table (id, quizId, title, timeLimitSeconds, orderIndex); `questions.sectionId` FK nullable
 
 ---
 
 ## 🟠 High Impact
 
-### Mock Exam Simulator
+### ~~Mock Exam Simulator~~ ✅ Partially Implemented (2026-04-14)
 Pre-built full-length mock exams per target school. Admin-curated, not community-created. Students select "UPCAT Simulator" and get:
 - Correct number of items per section
 - Correct time limits per section
 - Correct scoring mode
-- A UPG-equivalent score estimate at the end
+- Section breakdown in results
 
-This is the platform's flagship differentiator. No free platform currently offers a full, accurate UPCAT/ACET/USTET simulation.
-
-**Dependencies:** Exam tagging, section-level timers, penalized scoring mode.
+`quizType` field (`standard` | `mock_exam`) added to quizzes. Dedicated `/mock-exams` browse page. A UPG-equivalent score estimate is not yet implemented.
 
 ---
 
-### Weakness Tracker
-After multiple quiz attempts, surface per-topic accuracy to the user:
+### ~~Weakness Tracker~~ ✅ Implemented (2026-04-11)
+After multiple quiz attempts, per-subject accuracy is aggregated on the dashboard — weakest subjects ranked first, color-coded progress bars.
 
-> "Quadratic Equations — 38% across 11 attempts"
-> "Cell Biology — 71% across 6 attempts"
-
-Display as a subject breakdown on the dashboard. Highlight the weakest areas first. No ML needed — just aggregate `leaderboard` attempt data against question tags.
-
-**Dependencies:** Exam + subject tagging on questions.
+`GET /api/dashboard/weakness` groups `leaderboard` by `quizzes.subject`, returns sorted by percentage ascending. Dashboard "Weaknesses" section displays `WeaknessBar` components.
 
 ---
 
-### Curated Official Quiz Banks
+### ~~Curated Official Quiz Banks~~ ✅ Implemented
 Admin-maintained, exam-tagged, quality-controlled quiz sets. Community quizzes are uneven in quality. Students need a reliable "this is genuine UPCAT-style material" track.
 
-Official banks are marked as verified, shown first in listings, and owned by the admin role. Community quizzes remain available alongside them.
-
-**Schema impact:** A `verified` or `source` flag on quizzes. UI differentiates official vs. community content.
+`quizzes.isOfficial` boolean flag. Admin can set it on any quiz. UI shows official badge. Collections also have `isOfficial` flag.
 
 ---
 
-### Quiz Rating + Reporting
-Let users:
-- Rate a quiz (1–5 stars) after completing it
-- Flag specific questions as incorrect, ambiguous, or duplicate
+### ~~Quiz Rating + Reporting~~ ✅ Implemented (2026-04-14)
+Users can:
+- Rate a quiz 1–5 stars after completing it (upserted per user)
+- Flag specific questions as incorrect, ambiguous, or duplicate from the results page
 
-Aggregate ratings surface quality signal as content scales. Bad questions erode student trust fast — a report queue lets admins review and fix them without moderating everything manually.
+Admin report queue at `GET /api/admin/reports` with status/type filters; `PUT /api/admin/report/:id` to update status.
 
-**Schema impact:** `quiz_ratings` table, `question_reports` table.
+**Schema:** `quiz_ratings` (unique on userId+quizId), `question_reports` (open/reviewing/resolved status)
 
 ---
 
 ## 🟡 Community & Growth
 
-### Quiz Collections / Study Sets
+### ~~Quiz Collections / Study Sets~~ ✅ Implemented (2026-04-12)
 Group quizzes into named collections:
 - "UPCAT Mathematics — Full Coverage"
 - "ACET Vocabulary Crash Course"
 - "DOST-SEI Mechanical-Technical Drills"
 
-Users can browse and follow collections. Creators curate them. Solves discoverability as quiz volume grows — individual quiz search doesn't scale.
+Users can browse, follow, and create collections. `/collections` browse page with exam tag filters. Dashboard "My Collections" section.
 
-**Schema impact:** `collections` table, `collection_quizzes` join table. Collections have an owner, title, description, and target exam tag.
+**Schema:** `collections`, `collection_quizzes` (unique on collectionId+quizId), `collection_follows` (unique on userId+collectionId)
 
 ---
 
@@ -151,12 +142,10 @@ Targets the group study and classroom use case without requiring full real-time 
 
 ## 🟢 Student-Specific
 
-### Missed Questions Review Queue
-Wrong answers from any quiz go into a personal review queue. The queue re-surfaces questions after a delay (basic spaced repetition: 1 day → 3 days → 7 days → 14 days). Students work through the queue daily.
+### ~~Missed Questions Review Queue~~ ✅ Implemented (2026-04-11)
+Wrong answers from any quiz auto-upsert into a personal `review_queue`. Questions re-surface after a growing delay (1 → 3 → 7 → 14 → 30 days). `/review` standalone page with per-question feedback and session summary.
 
-This is the highest study-science ROI feature on the list. Repeated exposure to missed questions is how exam scores actually improve.
-
-**Schema impact:** `review_queue` table: `userId`, `questionId`, `nextReviewAt`, `interval`, `missCount`.
+**Schema:** `review_queue` (unique on userId+questionId): `nextReviewAt`, `intervalDays`, `missCount`
 
 ---
 
@@ -236,16 +225,18 @@ Targets the review center and classroom use case directly.
 Based on dependencies and impact:
 
 ```
-1. Exam + subject tagging          ← unlocks everything
-2. Penalized scoring mode          ← correctness for UPCAT users
-3. Curated official quiz banks     ← platform credibility
-4. Weakness tracker                ← turns tests into study tool
-5. Missed questions review queue   ← highest study-science ROI
-6. Section-level timers            ← required for mock exams
-7. Mock exam simulator             ← flagship feature
-8. Quiz collections                ← discoverability at scale
-9. Study plan                      ← closes the loop
-10. Image support                  ← unlocks figural/diagram questions
+1. ✅ Exam + subject tagging
+2. ✅ Penalized scoring mode
+3. ✅ Curated official quiz banks
+4. ✅ Weakness tracker
+5. ✅ Missed questions review queue
+6. ✅ Section-level timers
+7. ✅ Mock exam simulator (partial — UPG estimate pending)
+8. ✅ Quiz collections
+9. ✅ Quiz rating + question reporting
+10.    Study plan                   ← closes the loop
+11.    Public creator profiles      ← community reputation
+12.    Image support                ← unlocks figural/diagram questions
 ```
 
 ---

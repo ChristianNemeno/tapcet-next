@@ -50,8 +50,10 @@ tapcet-next/
 ├── server/                    # Express backend
 │   ├── src/
 │   │   ├── db/                # Drizzle schema, connection, seed, migrate
-│   │   ├── middleware/        # JWT auth middleware
-│   │   └── routes/            # auth, quiz, admin route handlers
+│   │   ├── middleware/        # JWT auth, role guards, request validation
+│   │   ├── routes/            # auth, quiz, userQuiz, admin, collection, rating, report, review
+│   │   ├── schemas/           # Zod validation schemas per domain
+│   │   └── services/          # gradingService, quizService, ratingService
 │   ├── drizzle/               # SQL migration files
 │   ├── drizzle.config.ts      # Drizzle Kit config
 │   └── package.json
