@@ -4,14 +4,15 @@ import {
   fetchQuiz,
   submitQuiz,
   fetchLeaderboard,
-  fetchDashboard,
-  login,
-  register,
+} from "./api/quiz.api";
+import { fetchDashboard } from "./api/user.api";
+import { login, register } from "./api/auth.api";
+import {
   createQuiz,
   updateQuiz,
   deleteQuiz,
   fetchMyQuizzes,
-} from "./api";
+} from "./api/quiz-management.api";
 
 function makeFetchMock(status: number, body?: unknown) {
   return vi.fn().mockResolvedValue({

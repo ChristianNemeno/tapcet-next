@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { DashboardEntry } from "@/lib/types";
+import type { DashboardEntry } from "@/lib/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {

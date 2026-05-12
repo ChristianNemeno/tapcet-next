@@ -1,19 +1,19 @@
 import "./env.js";
 import express from "express";
 import cors from "cors";
-import { db } from "./db/index.js";
-import { seed } from "./db/seed.js";
+import { db } from "./core/db/index.js";
+import { seed } from "./core/db/seed.js";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { pool } from "./db/index.js";
-import quizRouter from "./routes/quiz.js";
-import authRouter from "./routes/auth.js";
-import adminRouter from "./routes/admin.js";
-import userQuizRouter from "./routes/userQuiz.js";
-import reviewRouter from "./routes/review.js";
-import collectionRouter from "./routes/collection.js";
-import ratingRouter from "./routes/rating.js";
-import reportRouter from "./routes/report.js";
-import userRouter from "./routes/user.js";
+import { pool } from "./core/db/index.js";
+import authRouter from "./modules/auth/auth.routes.js";
+import quizRouter from "./modules/quiz/quiz.routes.js";
+import userQuizRouter from "./modules/quiz-management/user-quiz.routes.js";
+import adminQuizRouter from "./modules/quiz-management/admin-quiz.routes.js";
+import collectionRouter from "./modules/collection/collection.routes.js";
+import reviewRouter from "./modules/review/review.routes.js";
+import ratingRouter from "./modules/rating/rating.routes.js";
+import reportRouter from "./modules/report/report.routes.js";
+import userRouter from "./modules/user/user.routes.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -55,7 +55,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/auth", authRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api/admin", adminQuizRouter);
 app.use("/api", quizRouter);
 app.use("/api", userQuizRouter);
 app.use("/api", reviewRouter);

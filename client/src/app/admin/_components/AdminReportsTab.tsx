@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAdminReports, resolveReport } from "@/lib/api";
-import type { AdminReport } from "@/lib/types";
+import { fetchAdminReports, resolveReport } from "@/lib/api/report.api";
+import type { AdminReport } from "@/lib/types/report";
 import { Button } from "@/components/ui/button";
 import { ErrorAlert } from "@/components/ErrorAlert";
 

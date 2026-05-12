@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
-import { validateCsvImport, type CsvRow } from "@/lib/api";
+import { validateCsvImport, type CsvRow } from "@/lib/api/quiz.api";
 
 interface QuestionDraft {
   text: string;

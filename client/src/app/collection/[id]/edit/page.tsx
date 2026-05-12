@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   fetchCollection,
-  fetchQuizzes,
   updateCollection,
   addQuizToCollection,
   removeQuizFromCollection,
-} from "@/lib/api";
+} from "@/lib/api/collection.api";
+import { fetchQuizzes } from "@/lib/api/quiz.api";
 import { useAuth } from "@/lib/auth-context";
-import type { CollectionDetail, QuizSummary } from "@/lib/types";
+import type { CollectionDetail } from "@/lib/types/collection";
+import type { QuizSummary } from "@/lib/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchQuiz, submitQuiz } from "@/lib/api";
+import { fetchQuiz, submitQuiz } from "@/lib/api/quiz.api";
 import { useAuth } from "@/lib/auth-context";
-import type { QuizDetail, AnswersMap } from "@/lib/types";
+import type { QuizDetail, AnswersMap } from "@/lib/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { QuizFormPayload } from "@/lib/types";
+import type { QuizFormPayload } from "@/lib/types/quiz";
 
 interface QuestionDraft {
   text: string;

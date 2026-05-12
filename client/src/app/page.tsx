@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchQuizzes } from "@/lib/api";
-import type { QuizSummary } from "@/lib/types";
+import { fetchQuizzes } from "@/lib/api/quiz.api";
+import type { QuizSummary } from "@/lib/types/quiz";
 import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
 

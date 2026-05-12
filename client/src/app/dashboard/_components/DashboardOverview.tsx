@@ -1,4 +1,5 @@
-import type { DashboardEntry, MyQuizSummary } from "@/lib/types";
+import type { DashboardEntry } from "@/lib/types/user";
+import type { MyQuizSummary } from "@/lib/types/quiz";
 import { StatCard } from "./StatCard";
 
 interface Props {

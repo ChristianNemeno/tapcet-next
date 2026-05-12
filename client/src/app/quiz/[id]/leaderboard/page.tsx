@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { fetchLeaderboard } from "@/lib/api";
-import type { LeaderboardEntry } from "@/lib/types";
+import { fetchLeaderboard } from "@/lib/api/quiz.api";
+import type { LeaderboardEntry } from "@/lib/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorAlert } from "@/components/ErrorAlert";

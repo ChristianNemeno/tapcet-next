@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { createQuiz } from "@/lib/api";
+import { createQuiz } from "@/lib/api/quiz-management.api";
 import { EXAM_TAGS, SUBJECTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

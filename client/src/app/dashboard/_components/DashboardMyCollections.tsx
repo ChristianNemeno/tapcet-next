@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { MyCollectionSummary } from "@/lib/types";
+import type { MyCollectionSummary } from "@/lib/types/collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

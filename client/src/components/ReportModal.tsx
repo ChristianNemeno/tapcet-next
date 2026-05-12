@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { reportQuestion } from "@/lib/api";
+import { reportQuestion } from "@/lib/api/report.api";
 import {
   Dialog,
   DialogContent,

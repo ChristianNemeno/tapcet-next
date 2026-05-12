@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchMockExams } from "@/lib/api";
-import type { QuizSummary } from "@/lib/types";
+import { fetchMockExams } from "@/lib/api/quiz.api";
+import type { QuizSummary } from "@/lib/types/quiz";
 import { EXAM_TAGS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

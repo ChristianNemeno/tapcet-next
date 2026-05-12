@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchReviewQueue, answerReviewItem } from "@/lib/api";
+import { fetchReviewQueue, answerReviewItem } from "@/lib/api/review.api";
 import { useAuth } from "@/lib/auth-context";
-import type { ReviewQueueItem, ReviewAnswerResponse } from "@/lib/types";
+import type { ReviewQueueItem, ReviewAnswerResponse } from "@/lib/types/review";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { subjectBadge } from "@/lib/constants/subjects";

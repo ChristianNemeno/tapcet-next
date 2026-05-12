@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchQuizzes, createAdminQuiz, deleteAdminQuiz } from "@/lib/api";
-import type { QuizSummary } from "@/lib/types";
+import { fetchQuizzes } from "@/lib/api/quiz.api";
+import { createAdminQuiz, deleteAdminQuiz } from "@/lib/api/quiz-management.api";
+import type { QuizSummary } from "@/lib/types/quiz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

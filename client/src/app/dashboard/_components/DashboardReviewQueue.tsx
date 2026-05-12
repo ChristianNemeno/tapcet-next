@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReviewStats } from "@/lib/types";
+import type { ReviewStats } from "@/lib/types/review";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "./StatCard";

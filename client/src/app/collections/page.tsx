@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchCollections } from "@/lib/api";
+import { fetchCollections } from "@/lib/api/collection.api";
 import { useAuth } from "@/lib/auth-context";
-import type { CollectionSummary } from "@/lib/types";
+import type { CollectionSummary } from "@/lib/types/collection";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EXAM_TAGS } from "@/lib/constants";

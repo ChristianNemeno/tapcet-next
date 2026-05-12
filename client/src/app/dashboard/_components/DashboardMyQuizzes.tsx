@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { MyQuizSummary } from "@/lib/types";
+import type { MyQuizSummary } from "@/lib/types/quiz";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

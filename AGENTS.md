@@ -38,14 +38,36 @@ Production:   Browser → Nginx (:80) → /api/* → Express (:3001), else → N
 
 - Server auto-runs Drizzle migrations + seed on startup (retries up to 10× with 3s delay).
 - Quiz answers are **never** sent to client (`GET /api/quiz/:id` omits `answer`). Grading is server-only.
-- JWT stored in localStorage key `"tapcet_auth"`. Three middleware levels in `server/src/middleware/auth.ts`: `authenticateToken` (401/403), `optionalAuth` (sets `req.user` if valid), `requireAdmin` (403 if not admin).
+- JWT stored in localStorage key `"tapcet_auth"`. Three middleware levels in `server/src/core/middleware/auth.middleware.ts`: `authenticateToken` (401/403), `optionalAuth` (sets `req.user` if valid), `requireAdmin` (403 if not admin).
+
+## Server module structure
+
+Code is organized by domain, not layer. Each module owns its routes, schemas, services, and tests:
+
+| Module | Key routes |
+|--------|-----------|
+| `modules/auth/` | POST /register, /login |
+| `modules/quiz/` | GET /quizzes, /quiz/:id, POST /submit, GET /leaderboard, POST /import/validate |
+| `modules/quiz-management/` | user CRUD + admin CRUD of quizzes (POST/PUT/DELETE /quiz/:id, /admin/quizzes/:id) |
+| `modules/collection/` | CRUD collections, follow/unfollow, add/remove quizzes |
+| `modules/review/` | GET /review-queue, POST /review-queue/answer |
+| `modules/rating/` | GET/POST /quiz/:id/rating |
+| `modules/report/` | POST /question/:id/report, GET/PUT /admin/reports |
+| `modules/user/` | GET /user/:id/profile, GET /dashboard, GET /dashboard/weakness |
+
+Shared infrastructure lives in `core/`:
+- `core/db/` — schema, connection, seed, migrate
+- `core/middleware/` — auth, authorize, validate-request
+- `core/errors/` — AppError, error-response
+- `core/constants/` — limits, tags, reportStatus
+- `core/config/` — spaced-repetition
 
 ## DB schema & migrations
 
-- Schema: `server/src/db/schema.ts` — single source of truth.
+- Schema: `server/src/core/db/schema.ts` — single source of truth.
 - Migrations: `server/drizzle/` (SQL files). Auto-applied on server start via `drizzle-orm/node-postgres/migrator`.
 - Generate new migration: `cd server && npx drizzle-kit generate`
-- Seed script: `server/src/db/seed.ts` — only runs if `quizzes` table is empty.
+- Seed script: `server/src/core/db/seed.ts` — only runs if `quizzes` table is empty.
 
 ## Conventions (deviations from defaults)
 
@@ -53,6 +75,7 @@ Production:   Browser → Nginx (:80) → /api/* → Express (:3001), else → N
 - Files: kebab-case. DB columns: snake_case. Components: PascalCase. Everything else: camelCase.
 - Route handlers wrap logic in `try/catch` with `next(err)`. Global error handler returns 500 JSON.
 - Server loads `.env` from **project root** (not `server/`) via `dotenv` in `src/env.ts`.
+- Client API functions and types are split by domain under `client/src/lib/api/` and `client/src/lib/types/`.
 
 ## Docker
 

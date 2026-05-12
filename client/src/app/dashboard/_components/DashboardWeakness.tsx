@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { WeaknessEntry } from "@/lib/types";
+import type { WeaknessEntry } from "@/lib/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { subjectBar } from "@/lib/constants/subjects";
 

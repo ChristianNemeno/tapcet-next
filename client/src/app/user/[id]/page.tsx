@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { fetchCreatorProfile } from "@/lib/api";
-import type { CreatorProfile } from "@/lib/types";
+import { fetchCreatorProfile } from "@/lib/api/user.api";
+import type { CreatorProfile } from "@/lib/types/user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { CopyLinkButton } from "@/components/CopyLinkButton";

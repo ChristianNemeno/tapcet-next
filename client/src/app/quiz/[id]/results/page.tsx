@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchQuiz, fetchQuizRating, rateQuiz } from "@/lib/api";
-import type { SubmitQuizResponse, QuizDetail, QuizRating } from "@/lib/types";
+import { fetchQuiz } from "@/lib/api/quiz.api";
+import { fetchQuizRating, rateQuiz } from "@/lib/api/rating.api";
+import type { SubmitQuizResponse, QuizDetail } from "@/lib/types/quiz";
+import type { QuizRating } from "@/lib/types/quiz";
 import { MOCK_EXAM_CUTOFFS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/StarRating";

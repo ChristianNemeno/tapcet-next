@@ -2,23 +2,15 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  fetchDashboard,
-  fetchMyQuizzes,
-  fetchWeakness,
-  fetchReviewStats,
-  fetchMyCollections,
-  deleteQuiz,
-  deleteCollection,
-} from "@/lib/api";
+import { fetchDashboard, fetchWeakness } from "@/lib/api/user.api";
+import { fetchMyQuizzes, deleteQuiz } from "@/lib/api/quiz-management.api";
+import { fetchReviewStats } from "@/lib/api/review.api";
+import { fetchMyCollections, deleteCollection } from "@/lib/api/collection.api";
 import { useAuth } from "@/lib/auth-context";
-import type {
-  DashboardEntry,
-  MyQuizSummary,
-  WeaknessEntry,
-  ReviewStats,
-  MyCollectionSummary,
-} from "@/lib/types";
+import type { DashboardEntry, WeaknessEntry } from "@/lib/types/user";
+import type { MyQuizSummary } from "@/lib/types/quiz";
+import type { ReviewStats } from "@/lib/types/review";
+import type { MyCollectionSummary } from "@/lib/types/collection";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
