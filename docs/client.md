@@ -2,6 +2,69 @@
 
 The frontend is a **Next.js 16** application using the App Router, styled with **Tailwind CSS v4** and **shadcn/ui** components.
 
+## Directory Structure
+
+```
+client/src/
+├── app/                           # Pages & layouts (filesystem-based routing)
+│   ├── layout.tsx                 # Root layout (AuthProvider + Navbar + <main>)
+│   ├── page.tsx                   # Home page (/)
+│   ├── globals.css                # Global styles
+│   ├── admin/_components/         # AdminQuizzesTab, AdminMockExamsTab, AdminReportsTab
+│   ├── collection/                # Collection CRUD pages (create, [id], edit)
+│   ├── collections/               # Collections browse
+│   ├── dashboard/_components/     # DashboardOverview, Attempts, Weakness, ReviewQueue, etc.
+│   ├── login/                     # Login page
+│   ├── mock-exams/                # Mock exam listings
+│   ├── quiz/                      # Quiz player, create, [id]/edit, results, leaderboard
+│   ├── register/                  # Registration page
+│   ├── review/                    # Spaced repetition review session
+│   └── user/[id]/                 # User profile
+├── components/                    # Reusable React components
+│   ├── CopyLinkButton.tsx         # Copy-to-clipboard button
+│   ├── CsvImporter.tsx            # CSV question import UI
+│   ├── ErrorAlert.tsx             # Inline error message display
+│   ├── JsonImporter.tsx           # JSON question import UI
+│   ├── navbar.tsx                 # Navigation bar (adapts to auth state)
+│   ├── navbar.test.tsx
+│   ├── ReportModal.tsx            # Question flagging dialog
+│   ├── StarRating.tsx             # Interactive 1–5 star widget
+│   └── ui/                        # shadcn/ui Base UI primitives
+│       ├── alert-dialog.tsx, avatar.tsx, badge.tsx, button.tsx, card.tsx
+│       ├── dialog.tsx, input.tsx, label.tsx, progress.tsx, separator.tsx
+│       ├── sheet.tsx, skeleton.tsx, table.tsx, tabs.tsx
+├── lib/                           # Shared libraries & utilities
+│   ├── api/                       # API client functions (per domain)
+│   │   ├── auth.api.ts, collection.api.ts, quiz.api.ts
+│   │   ├── quiz-management.api.ts, rating.api.ts, report.api.ts
+│   │   ├── review.api.ts, user.api.ts
+│   │   └── client.ts             # Base HTTP client (fetch wrapper)
+│   ├── auth-context.tsx           # React auth context provider
+│   ├── auth-context.test.tsx
+│   ├── api.test.ts                # API client tests
+│   ├── constants.ts               # General app constants
+│   ├── constants/
+│   │   └── subjects.ts            # Subject enumeration
+│   ├── format.ts                  # Formatting utilities
+│   ├── hooks/
+│   │   └── useAuthGuard.ts        # Auth guard hook
+│   ├── types/                     # TypeScript type definitions (per domain)
+│   │   ├── auth.ts, collection.ts, quiz.ts
+│   │   ├── report.ts, review.ts, user.ts
+│   └── utils.ts                   # General utility functions
+└── test-utils/
+    └── setup.ts                   # Vitest + jsdom test setup
+```
+
+### Page-level Components
+
+Page-specific components are **co-located** in `_components/` directories next to their page:
+
+| Directory | Components |
+|---|---|
+| `app/dashboard/_components/` | `DashboardOverview`, `DashboardAttempts`, `DashboardWeakness`, `DashboardReviewQueue`, `DashboardMyQuizzes`, `DashboardMyCollections`, `StatCard` |
+| `app/admin/_components/` | `AdminQuizzesTab`, `AdminMockExamsTab`, `AdminReportsTab`, `types.ts` |
+
 ## Pages & Routing
 
 ```mermaid
@@ -84,9 +147,9 @@ useEffect(() => {
 
 Admin pages additionally check `role !== "admin"` and redirect to `/`.
 
-## API Client (`lib/api.ts`)
+## API Client (`lib/api/`)
 
-A thin wrapper around `fetch()` that provides typed functions for all API calls:
+API functions are split by domain under `lib/api/`, built on a shared `client.ts` fetch wrapper that provides typed functions for all API calls:
 
 | Function | Endpoint | Auth |
 |---|---|---|
@@ -124,13 +187,15 @@ A thin wrapper around `fetch()` that provides typed functions for all API calls:
 | `addQuizToCollection(collectionId, quizId, token)` | `POST /api/collection/:id/quizzes/:quizId` | Required |
 | `removeQuizFromCollection(collectionId, quizId, token)` | `DELETE /api/collection/:id/quizzes/:quizId` | Required |
 
-All functions use a shared `parseResponse<T>()` helper that:
+All functions use a shared `parseResponse<T>()` helper in `lib/api/client.ts` that:
 1. Checks `res.ok` and throws an `Error` with the server's error message if not
 2. Returns the parsed JSON body typed as `T`
 
 The `authHeader()` helper adds `Authorization: Bearer <token>` when a token is provided.
 
-## TypeScript Types (`lib/types.ts`)
+## TypeScript Types (`lib/types/`)
+
+Type definitions are split by domain under `lib/types/`:
 
 Shared type definitions for API responses:
 
@@ -181,6 +246,9 @@ The navigation bar appears on all pages via the root layout. It adapts based on 
 | `ReportModal` | `components/ReportModal.tsx` | Question flagging dialog (incorrect / ambiguous / duplicate) |
 | `StarRating` | `components/StarRating.tsx` | Interactive 1–5 star rating widget |
 | `ErrorAlert` | `components/ErrorAlert.tsx` | Inline error message display |
+| `CsvImporter` | `components/CsvImporter.tsx` | CSV question import wizard |
+| `JsonImporter` | `components/JsonImporter.tsx` | JSON question import wizard |
+| `CopyLinkButton` | `components/CopyLinkButton.tsx` | Copy-to-clipboard button for sharing |
 
 ### Dashboard Sub-Components (`app/dashboard/_components/`)
 

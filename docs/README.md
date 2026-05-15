@@ -15,6 +15,7 @@ A quiz platform for Filipino students preparing for college entrance exams.
 | Document | Description |
 |---|---|
 | [Architecture](architecture.md) | System overview, tech stack, request flow, auth flow |
+| [Server](server.md) | Directory structure, module conventions, middleware, testing |
 | [Database](database.md) | Schema reference, Drizzle ORM, migrations, seed data |
 | [API Reference](api-reference.md) | All REST endpoints with request/response examples |
 | [Client](client.md) | Pages, routing, auth context, API client, components |

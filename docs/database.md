@@ -223,7 +223,7 @@ The Drizzle config is at `server/drizzle.config.ts`:
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  schema: "./src/db/schema.ts",
+  schema: "./src/core/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
@@ -234,11 +234,11 @@ export default defineConfig({
 
 ### Schema Definition
 
-The schema is defined in `server/src/db/schema.ts` using Drizzle's TypeScript API. This is the single source of truth for the database structure.
+The schema is defined in `server/src/core/db/schema.ts` using Drizzle's TypeScript API. This is the single source of truth for the database structure.
 
 ### Connection Pool
 
-The database connection is managed by a `pg.Pool` instance in `server/src/db/index.ts`, wrapped with Drizzle:
+The database connection is managed by a `pg.Pool` instance in `server/src/core/db/index.ts`, wrapped with Drizzle:
 
 ```typescript
 const pool = new pg.Pool({
@@ -258,7 +258,7 @@ await migrate(db, { migrationsFolder: "./drizzle" });
 
 ### Generating New Migrations
 
-When you modify the schema in `server/src/db/schema.ts`, generate a new migration:
+When you modify the schema in `server/src/core/db/schema.ts`, generate a new migration:
 
 ```bash
 cd server
@@ -289,7 +289,7 @@ On first startup, the server checks if any quizzes exist. If the `quizzes` table
 | Web Development | 6 | 90s |
 | Science & Nature | 6 | 75s |
 
-The seed logic is in `server/src/db/seed.ts` and runs after migrations in the startup sequence:
+The seed logic is in `server/src/core/db/seed.ts` and runs after migrations in the startup sequence:
 
 ```typescript
 await migrate(db, { migrationsFolder: "./drizzle" });

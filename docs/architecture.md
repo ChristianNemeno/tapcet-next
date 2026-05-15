@@ -39,33 +39,62 @@ In **local development**, the Next.js dev server proxies `/api/*` requests to th
 
 ```
 tapcet-next/
-├── client/                    # Next.js 16 frontend
+├── client/                          # Next.js 16 frontend
 │   ├── src/
-│   │   ├── app/               # App Router pages
-│   │   ├── components/        # React components (navbar, shadcn/ui)
-│   │   └── lib/               # API client, auth context, types, utils
-│   ├── next.config.ts         # Rewrites, standalone output
+│   │   ├── app/                     # App Router pages & layouts
+│   │   │   ├── admin/_components/   # Admin dashboard tabs
+│   │   │   ├── collection/          # Collection CRUD pages
+│   │   │   ├── collections/         # Collections browse
+│   │   │   ├── dashboard/_components/  # Dashboard sections
+│   │   │   ├── login/               # Login page
+│   │   │   ├── mock-exams/          # Mock exam listings
+│   │   │   ├── quiz/                # Quiz player, create, edit, results, leaderboard
+│   │   │   ├── register/            # Registration page
+│   │   │   ├── review/              # Spaced repetition review
+│   │   │   └── user/                # User profile
+│   │   ├── components/              # Shared UI (navbar, modals, importers)
+│   │   │   └── ui/                  # shadcn/ui Base UI primitives
+│   │   ├── lib/                     # API client, auth context, types, utils, hooks
+│   │   │   ├── api/                 # Domain-specific API functions
+│   │   │   ├── constants/           # App constants
+│   │   │   ├── hooks/               # Custom React hooks
+│   │   │   └── types/               # Domain-specific TypeScript types
+│   │   └── test-utils/              # Vitest + jsdom test setup
+│   ├── next.config.ts               # Rewrites, standalone output
 │   └── package.json
 │
-├── server/                    # Express backend
+├── server/                          # Express REST API
 │   ├── src/
-│   │   ├── db/                # Drizzle schema, connection, seed, migrate
-│   │   ├── middleware/        # JWT auth, role guards, request validation
-│   │   ├── routes/            # auth, quiz, userQuiz, admin, collection, rating, report, review
-│   │   ├── schemas/           # Zod validation schemas per domain
-│   │   └── services/          # gradingService, quizService, ratingService
-│   ├── drizzle/               # SQL migration files
-│   ├── drizzle.config.ts      # Drizzle Kit config
+│   │   ├── core/                    # Shared infrastructure
+│   │   │   ├── config/              # App configuration (spaced repetition)
+│   │   │   ├── constants/           # App-wide constants (limits, tags, report status)
+│   │   │   ├── db/                  # Drizzle schema, connection, migrate, seed
+│   │   │   ├── errors/              # AppError class, error response formatter
+│   │   │   └── middleware/          # JWT auth, role guards, request validation
+│   │   ├── modules/                 # Domain modules (routes, schemas, services co-located)
+│   │   │   ├── auth/                # Registration & login
+│   │   │   ├── collection/          # CRUD collections, follow/unfollow
+│   │   │   ├── quiz/                # Quiz listing, detail, submission, leaderboard
+│   │   │   ├── quiz-management/     # User & admin quiz CRUD
+│   │   │   ├── rating/              # Quiz rating
+│   │   │   ├── report/              # Question reporting
+│   │   │   ├── review/              # Spaced repetition review queue
+│   │   │   └── user/                # Dashboard, weakness analysis, profiles
+│   │   ├── test-utils/              # Server test helpers
+│   │   ├── env.ts                   # Environment variable loading
+│   │   └── index.ts                 # Express app entry point
+│   ├── drizzle/                     # SQL migration files
+│   ├── drizzle.config.ts            # Drizzle Kit config
 │   └── package.json
 │
 ├── nginx/
-│   └── nginx.conf             # Reverse proxy configuration
+│   └── nginx.conf                   # Reverse proxy configuration
 │
-├── docker-compose.yml         # Full-stack orchestration
-├── Dockerfile                 # Server multi-stage build
-├── Dockerfile.client          # Client standalone build
-├── .env.example               # Environment variable template
-└── package.json               # Root workspace scripts
+├── docker-compose.yml               # Full-stack orchestration
+├── Dockerfile                       # Server multi-stage build
+├── Dockerfile.client                # Client standalone build
+├── .env.example                     # Environment variable template
+└── package.json                     # Root workspace scripts
 ```
 
 ## Request Flow

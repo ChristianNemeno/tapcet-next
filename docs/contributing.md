@@ -31,28 +31,43 @@
 ```
 client/src/
 ├── app/          # Pages (App Router — one directory per route)
+│   └── _components/  # Page-specific components co-located with their page
 ├── components/   # Reusable React components
 │   └── ui/       # shadcn/ui primitives
-└── lib/          # Non-component code (API client, types, utilities)
+├── lib/          # Non-component code
+│   ├── api/      # API client functions (per domain)
+│   ├── constants/# App constants
+│   ├── hooks/    # Custom React hooks
+│   └── types/    # TypeScript type definitions (per domain)
+└── test-utils/   # Vitest + jsdom test setup
 
 server/src/
-├── config/       # App configuration (e.g. spaced repetition intervals)
-├── constants/    # App-wide constants (nickname length, page sizes)
-├── db/           # Database (schema, connection, seed, migrations)
-├── lib/          # Shared utility functions
-├── middleware/   # Express middleware (auth, request validation)
-├── routes/       # Express route handlers (one file per domain)
-├── schemas/      # Zod validation schemas per domain
-├── services/     # Business logic (gradingService, quizService, ratingService)
-└── test-utils/   # Test helpers
+├── core/                     # Shared infrastructure
+│   ├── config/               # App configuration (spaced repetition intervals)
+│   ├── constants/            # App-wide constants (nickname length, page sizes)
+│   ├── db/                   # Database (schema, connection, seed, migrations)
+│   ├── errors/               # AppError class, error response formatter
+│   └── middleware/            # Express middleware (auth, request validation, authorization)
+├── modules/                  # Domain modules (routes, schemas, services co-located)
+│   ├── auth/                 # Registration & login
+│   ├── collection/           # CRUD collections, follow/unfollow
+│   ├── quiz/                 # Quiz listing, detail, submission, leaderboard
+│   ├── quiz-management/      # User & admin quiz CRUD
+│   ├── rating/               # Quiz rating
+│   ├── report/               # Question reporting
+│   ├── review/               # Spaced repetition review queue
+│   └── user/                 # Dashboard, weakness analysis, profiles
+└── test-utils/               # Test helpers
 ```
 
 ## How to Add a New API Route
 
-1. **Create or edit a route file** in `server/src/routes/`
+1. **Create or edit a module** in `server/src/modules/`:
+
+    Each module contains co-located routes, schemas, and optionally services. Add or edit the route file:
 
     ```typescript
-    // server/src/routes/example.ts
+    // server/src/modules/example/example.routes.ts
     import { Router } from "express";
 
     const router = Router();
@@ -69,16 +84,16 @@ server/src/
     export default router;
     ```
 
-    For routes that accept a request body, use `validateBody()` with a Zod schema:
+    For routes that accept a request body, use `validateBody()` with a Zod schema defined in the same module:
 
     ```typescript
-    // server/src/schemas/example.ts
+    // server/src/modules/example/example.schema.ts
     import { z } from "zod";
     export const createExampleSchema = z.object({ name: z.string().min(1) });
 
-    // server/src/routes/example.ts
-    import { validateBody } from "../middleware/validateRequest.js";
-    import { createExampleSchema } from "../schemas/example.js";
+    // server/src/modules/example/example.routes.ts
+    import { validateBody } from "../../core/middleware/validate-request.middleware.js";
+    import { createExampleSchema } from "./example.schema.js";
 
     router.post("/example", validateBody(createExampleSchema), async (req, res, next) => {
       const { name } = req.body; // typed and validated
@@ -89,19 +104,24 @@ server/src/
 2. **Register the router** in `server/src/index.ts`:
 
     ```typescript
-    import exampleRouter from "./routes/example.js";
+    import exampleRouter from "./modules/example/example.routes.js";
     app.use("/api", exampleRouter);
     ```
 
-3. **Add a client-side API function** in `client/src/lib/api.ts`:
+3. **Add a client-side API function** in `client/src/lib/api/`:
 
     ```typescript
+    // client/src/lib/api/example.api.ts
+    import { parseResponse } from "./client.js";
+
+    const BASE = "/api";
+
     export async function fetchExample(): Promise<ExampleType> {
       return parseResponse(await fetch(`${BASE}/example`));
     }
     ```
 
-4. **Add types** in `client/src/lib/types.ts` if needed.
+4. **Add types** in `client/src/lib/types/` if needed.
 
 ## How to Add a New Page
 
@@ -133,7 +153,7 @@ server/src/
 
 ## How to Modify the Database Schema
 
-1. **Edit the schema** in `server/src/db/schema.ts`:
+1. **Edit the schema** in `server/src/core/db/schema.ts`:
 
     ```typescript
     export const myTable = pgTable("my_table", {
@@ -163,7 +183,7 @@ server/src/
 Use the `authenticateToken` middleware:
 
 ```typescript
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken } from "../../core/middleware/auth.middleware.js";
 
 router.get("/protected", authenticateToken, async (req, res) => {
   // req.user is available: { userId: string, role: "user" | "admin" }
@@ -176,7 +196,7 @@ router.get("/protected", authenticateToken, async (req, res) => {
 Stack `authenticateToken` and `requireAdmin`:
 
 ```typescript
-import { authenticateToken, requireAdmin } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../../core/middleware/auth.middleware.js";
 
 router.use(authenticateToken, requireAdmin);
 // All routes on this router now require admin
@@ -187,7 +207,7 @@ router.use(authenticateToken, requireAdmin);
 Use `optionalAuth` — sets `req.user` if a valid token is present, but doesn't reject the request if it's missing:
 
 ```typescript
-import { optionalAuth } from "../middleware/auth.js";
+import { optionalAuth } from "../../core/middleware/auth.middleware.js";
 
 router.post("/submit", optionalAuth, async (req, res) => {
   if (req.user) {
